@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:p="primefaces"
+      lang="#{localeBean.language}">
+
+<f:view locale="#{localeBean.locale}" contentType="text/html" encoding="UTF-8">
+<ui:insert name="metadata"/>
+<h:head>
+    <f:facet name="first">
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="theme-color" content="#1F3A5F"/>
+        <meta name="description" content="#{msg['hero.subtitle']}"/>
+        <!-- Anti-flash : applique le thème mémorisé avant le premier rendu -->
+        <script>
+            (function () {
+                try {
+                    var t = localStorage.getItem('gs-theme');
+                    if (t !== 'dark' &amp;&amp; t !== 'light') {
+                        t = window.matchMedia &amp;&amp; window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                    }
+                    document.documentElement.setAttribute('data-theme', t);
+                } catch (e) {}
+            })();
+        </script>
+    </f:facet>
+
+    <title><ui:insert name="title">#{msg['app.name']} — #{msg['app.tagline']}</ui:insert></title>
+
+    <link rel="icon" type="image/svg+xml" href="#{resource['media/logo/favicon.svg']}"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin"/>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Poppins:wght@500;600;700&amp;display=swap"/>
+
+    <h:outputStylesheet library="primefaces" name="primeicons/primeicons.css"/>
+    <f:facet name="last">
+        <link rel="stylesheet" type="text/css" href="#{resource['css/theme.css']}"/>
+        <link rel="stylesheet" type="text/css" href="#{resource['css/animations.css']}"/>
+        <link rel="stylesheet" type="text/css" href="#{resource['css/dark.css']}"/>
+        <ui:insert name="head"/>
+    </f:facet>
+</h:head>
+
+<h:body styleClass="gs-body">
+
+    <a class="gs-skip-link" href="#gs-main">#{msg['a11y.skip']}</a>
+
+    <!-- ================= En-tête ================= -->
+    <header class="gs-header" id="gs-header">
+        <div class="gs-container gs-header__inner">
+
+            <h:link outcome="/public/index" styleClass="gs-logo" title="#{msg['app.name']}">
+                <h:graphicImage name="media/logo/gservices-logo-light.svg"
+                                alt="#{msg['app.name']}" styleClass="-on-dark"/>
+                <h:graphicImage name="media/logo/gservices-logo.svg"
+                                alt="#{msg['app.name']}" styleClass="-on-light"/>
+            </h:link>
+
+            <nav class="gs-nav" aria-label="Navigation principale">
+                <h:link outcome="/public/index" value="#{msg['nav.home']}"/>
+                <h:link outcome="/public/catalogue" value="#{msg['nav.catalogue']}"/>
+                <h:link outcome="/public/carte" value="#{msg['nav.map']}"/>
+                <a href="#{request.contextPath}/public/index.xhtml#cta">#{msg['nav.about']}</a>
+                <h:link outcome="/public/favoris" value="#{msg['nav.favoris']}"
+                        rendered="#{utilisateurCourant.authentifie}"/>
+                <h:link outcome="/admin/index" value="#{msg['nav.login']}" styleClass="-quiet"/>
+            </nav>
+
+            <div class="gs-header__tools">
+                <h:form styleClass="gs-lang" prependId="false">
+                    <h:commandLink value="#{msg['lang.fr']}" immediate="true"
+                                   styleClass="#{localeBean.active('fr') ? 'is-active' : ''}"
+                                   action="#{localeBean.changeLanguage('fr')}"/>
+                    <h:commandLink value="#{msg['lang.en']}" immediate="true"
+                                   styleClass="#{localeBean.active('en') ? 'is-active' : ''}"
+                                   action="#{localeBean.changeLanguage('en')}"/>
+                </h:form>
+
+                <button type="button" id="gs-theme-toggle" class="gs-icon-btn"
+                        title="#{msg['theme.toggle']}" aria-label="#{msg['theme.toggle']}" aria-pressed="false">
+                    <i class="pi pi-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= Contenu ================= -->
+    <main id="gs-main" class="gs-main">
+        <ui:insert name="content"/>
+    </main>
+
+    <!-- ================= Pied de page ================= -->
+    <footer class="gs-footer">
+        <div class="gs-container">
+            <div class="gs-footer__grid">
+                <div class="gs-footer__brand">
+                    <h:graphicImage name="media/logo/gservices-logo-light.svg" alt="#{msg['app.name']}"/>
+                    <p>#{msg['footer.tagline']}</p>
+                </div>
+                <div>
+                    <h4>#{msg['footer.col.product']}</h4>
+                    <h:link outcome="/public/catalogue" value="#{msg['footer.link.services']}"/>
+                    <h:link outcome="/public/catalogue" value="#{msg['footer.link.catalogue']}"/>
+                    <h:link outcome="/public/carte" value="#{msg['footer.link.map']}"/>
+                </div>
+                <div>
+                    <h4>#{msg['footer.col.company']}</h4>
+                    <a href="#{request.contextPath}/public/index.xhtml#cta">#{msg['footer.link.about']}</a>
+                    <a href="#{request.contextPath}/public/index.xhtml#cta">#{msg['footer.link.contact']}</a>
+                    <a href="#{request.contextPath}/public/index.xhtml#cta">#{msg['footer.link.careers']}</a>
+                </div>
+                <div>
+                    <h4>#{msg['footer.col.legal']}</h4>
+                    <a href="#{request.contextPath}/public/index.xhtml#cta">#{msg['footer.link.privacy']}</a>
+                    <a href="#{request.contextPath}/public/index.xhtml#cta">#{msg['footer.link.terms']}</a>
+                </div>
+            </div>
+            <div class="gs-footer__bottom">
+                <span>© #{homeBean.anneeCourante} #{msg['app.name']}. #{msg['footer.rights']}</span>
+                <span>#{msg['footer.build']}</span>
+            </div>
+        </div>
+    </footer>
+
+    <h:outputScript library="js" name="effects.js" target="body"/>
+    <ui:insert name="scripts"/>
+</h:body>
+</f:view>
+</html>

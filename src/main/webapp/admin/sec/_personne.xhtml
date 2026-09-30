@@ -1,0 +1,284 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmP">
+
+            <div class="gs-page__head">
+                <span class="ui-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <p:inputText value="#{personneBean.filtre}" placeholder="#{msg['action.rechercher']}">
+                        <p:ajax event="keyup" update=":secTabs:frmP:tbl" delay="350"/>
+                    </p:inputText>
+                </span>
+                <p:selectOneMenu value="#{personneBean.filtreProfil}" filter="true" filterMatchMode="contains"
+                                 style="min-width:12rem">
+                    <f:selectItem itemLabel="#{msg['personne.filtre.tousRoles']}" itemValue="#{null}"/>
+                    <f:selectItems value="#{personneBean.tousProfils}" var="pr" itemLabel="#{pr.libelle}" itemValue="#{pr.id}"/>
+                    <p:ajax update=":secTabs:frmP:tbl"/>
+                </p:selectOneMenu>
+                <p:selectOneMenu value="#{personneBean.filtreEtat}" style="min-width:10rem">
+                    <f:selectItems value="#{personneBean.etatsFiltre}" var="e"
+                                   itemLabel="#{msg['personne.filtre.etat.'.concat(e)]}" itemValue="#{e}"/>
+                    <p:ajax update=":secTabs:frmP:tbl"/>
+                </p:selectOneMenu>
+                <span class="gs-spacer"></span>
+                <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                                 rendered="#{utilisateurCourant.autorise(perms.PERSONNE_CREER)}"
+                                 action="#{personneBean.preparerCreation}" update=":secTabs:frmP:dlgPersonne"
+                                 oncomplete="PF('dlgPersonne').show()"/>
+                <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                                 rendered="#{utilisateurCourant.autorise(perms.PERSONNE_EXPORTER)}">
+                    <p:dataExporter type="csv" target="tbl" fileName="personnes"/>
+                </p:commandButton>
+            </div>
+
+            <p:dataTable id="tbl" widgetVar="tblP" var="row" value="#{personneBean.model}" lazy="true"
+                         paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                         paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+                <p:column headerText="#{msg['personne.nomComplet']}" sortBy="#{row.nom}">#{row.nomComplet}</p:column>
+                <p:column headerText="#{msg['personne.login']}" sortBy="#{row.login}">#{row.login}</p:column>
+                <p:column headerText="#{msg['personne.email1']}" sortBy="#{row.email1}">#{row.email1}</p:column>
+                <p:column headerText="#{msg['personne.profils']}">
+                    <span class="gs-tag-list">
+                        <ui:repeat value="#{row.profils}" var="pl">
+                            <p:tag value="#{pl}" severity="info"/>
+                        </ui:repeat>
+                    </span>
+                </p:column>
+                <p:column headerText="#{msg['personne.specialite']}">
+                    <h:outputText value="#{row.categorieSpecialiteLibelle}"
+                                  rendered="#{not empty row.categorieSpecialiteLibelle}"/>
+                    <h:outputText value="—" styleClass="gs-hint"
+                                  rendered="#{empty row.categorieSpecialiteLibelle}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:11rem">
+                    <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{row.etat ? 'success' : 'danger'}"/>
+                    <p:tag value="#{msg['personne.verrouille']}" severity="warning" icon="pi pi-lock"
+                           rendered="#{row.compteVerrouille}" style="margin-left:4px"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:13rem" exportable="false">
+                    <span class="gs-actions">
+                        <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.PERSONNE_MODIFIER)}"
+                                         action="#{personneBean.preparerEdition(row)}" update=":secTabs:frmP:dlgPersonne"
+                                         oncomplete="PF('dlgPersonne').show()" styleClass="ui-button-flat"/>
+                        <p:commandButton icon="pi pi-id-card" title="#{msg['personne.gererProfils']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.PROFIL_AFFECTER)}"
+                                         action="#{personneBean.gererProfils(row)}" update=":secTabs:frmP:dlgProfils"
+                                         oncomplete="if (args &amp;&amp; args.profils) PF('dlgProfils').show()"
+                                         styleClass="ui-button-flat"/>
+                        <p:commandButton icon="pi pi-key" title="#{msg['personne.voirPermissions']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.PERSONNE_LIRE)}"
+                                         action="#{personneBean.voirPermissions(row)}" update=":secTabs:frmP:dlgPerms"
+                                         oncomplete="if (args &amp;&amp; args.perms) PF('dlgPerms').show()"
+                                         styleClass="ui-button-flat"/>
+                        <p:commandButton icon="pi pi-refresh" title="#{msg['personne.reinitMdp']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.PERSONNE_MODIFIER)}"
+                                         action="#{personneBean.preparerReinit(row)}" update=":secTabs:frmP:dlgReinit"
+                                         oncomplete="PF('dlgReinit').show()" styleClass="ui-button-flat"/>
+                        <p:commandButton icon="pi pi-unlock" title="#{msg['personne.deverrouiller']}" process="@this"
+                                         rendered="#{row.compteVerrouille and utilisateurCourant.autorise(perms.PERSONNE_MODIFIER)}"
+                                         action="#{personneBean.deverrouiller(row)}" update=":secTabs:frmP:tbl :growl"
+                                         styleClass="ui-button-flat"/>
+                        <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                         title="#{row.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                         rendered="#{utilisateurCourant.autorise(perms.PERSONNE_SUPPRIMER)}"
+                                         action="#{personneBean.basculerEtat(row)}" update=":secTabs:frmP:tbl :growl"
+                                         styleClass="ui-button-flat">
+                            <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                       icon="pi pi-exclamation-triangle"/>
+                        </p:commandButton>
+                    </span>
+                </p:column>
+            </p:dataTable>
+        
+
+        <!-- ===== Dialogue création / édition ===== -->
+        
+            <p:dialog id="dlgPersonne" widgetVar="dlgPersonne" modal="true" resizable="false" width="760" responsive="true"
+                      header="#{empty personneBean.selection.id ? msg['personne.dialogNouveau'] : msg['personne.dialogEdition']}">
+                <p:messages showDetail="true" closable="true"/>
+                <div class="gs-form-grid">
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.nom']}</label>
+                        <p:inputText value="#{personneBean.selection.nom}" required="true" maxlength="80"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.prenom']}</label>
+                        <p:inputText value="#{personneBean.selection.prenom}" required="true" maxlength="80"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.sexe']}</label>
+                        <p:selectOneMenu value="#{personneBean.selection.sexe}">
+                            <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                            <f:selectItems value="#{personneBean.sexes}" var="s" itemLabel="#{s}" itemValue="#{s}"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.dateNaissance']}</label>
+                        <p:datePicker value="#{personneBean.selection.dateNaissance}" pattern="dd/MM/yyyy" showIcon="true"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.lieuNaissance']}</label>
+                        <p:inputText value="#{personneBean.selection.lieuNaissance}" maxlength="120"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.nationalite']}</label>
+                        <p:inputText value="#{personneBean.selection.nationalite}" maxlength="80"/>
+                    </div>
+                    <div class="gs-field-v gs-col-2">
+                        <label>#{msg['personne.adresse']}</label>
+                        <p:inputText value="#{personneBean.selection.adresse}" maxlength="255"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.codePostal']}</label>
+                        <p:inputText value="#{personneBean.selection.codePostal}" maxlength="20"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.telephone1']}</label>
+                        <p:inputText value="#{personneBean.selection.telephone1}" maxlength="30"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.telephone2']}</label>
+                        <p:inputText value="#{personneBean.selection.telephone2}" maxlength="30"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.telephone3']}</label>
+                        <p:inputText value="#{personneBean.selection.telephone3}" maxlength="30"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.email1']}</label>
+                        <p:inputText value="#{personneBean.selection.email1}" maxlength="150"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.email2']}</label>
+                        <p:inputText value="#{personneBean.selection.email2}" maxlength="150"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['personne.login']}</label>
+                        <p:inputText value="#{personneBean.selection.login}" required="true" maxlength="60"
+                                     disabled="#{not empty personneBean.selection.id}"/>
+                    </div>
+                    <div class="gs-field-v gs-col-2">
+                        <label>#{msg['personne.specialite']}</label>
+                        <p:selectOneMenu value="#{personneBean.selection.categorieSpecialiteId}"
+                                         filter="true" filterMatchMode="contains">
+                            <f:selectItem itemLabel="#{msg['personne.specialite.aucune']}" itemValue="#{null}"/>
+                            <f:selectItems value="#{personneBean.categoriesSpecialite}" var="c"
+                                           itemLabel="#{c.libelle}" itemValue="#{c.id}"/>
+                        </p:selectOneMenu>
+                        <small class="gs-hint">#{msg['personne.specialite.aide']}</small>
+                    </div>
+                    <ui:fragment rendered="#{empty personneBean.selection.id}">
+                        <div class="gs-field-v">
+                            <label>#{msg['personne.motDePasseInit']}</label>
+                            <p:password value="#{personneBean.nouveauMotDePasse}" required="#{empty personneBean.selection.id}"
+                                        feedback="true" toggleMask="true"/>
+                        </div>
+                    </ui:fragment>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgPersonne').hide()"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{personneBean.enregistrer}"
+                                     update=":secTabs:frmP:tbl :secTabs:frmP:dlgPersonne :growl"
+                                     oncomplete="if (args &amp;&amp; args.ok) PF('dlgPersonne').hide()" process=":secTabs:frmP:dlgPersonne"/>
+                </f:facet>
+            </p:dialog>
+        
+
+        <!-- ===== Dialogue réinitialisation mot de passe ===== -->
+        
+            <p:dialog id="dlgReinit" widgetVar="dlgReinit" modal="true" resizable="false" width="420" responsive="true"
+                      header="#{msg['personne.reinitMdp']} — #{personneBean.selection.login}">
+                <p:messages showDetail="true" closable="true"/>
+                <div class="gs-field-v">
+                    <label>#{msg['personne.motDePasse']}</label>
+                    <p:password value="#{personneBean.nouveauMotDePasse}" required="true"
+                                feedback="true" toggleMask="true"/>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgReinit').hide()"/>
+                    <p:commandButton value="#{msg['action.confirmer']}" icon="pi pi-check"
+                                     action="#{personneBean.reinitialiser}"
+                                     update=":secTabs:frmP:dlgReinit :growl"
+                                     oncomplete="if (args &amp;&amp; args.ok) PF('dlgReinit').hide()" process=":secTabs:frmP:dlgReinit"/>
+                </f:facet>
+            </p:dialog>
+        
+
+        <!-- ===== Dialogue gestion des profils (Role) ===== -->
+        
+            <p:dialog id="dlgProfils" widgetVar="dlgProfils" modal="true" resizable="false" width="620" responsive="true"
+                      header="#{msg['personne.gererProfils']} — #{personneBean.personneRoles.nomComplet}">
+                <p:messages showDetail="true" closable="true"/>
+                <div class="gs-page__head" style="margin-bottom:12px">
+                    <p:selectOneMenu value="#{personneBean.profilAAjouter}" style="min-width:16rem">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{personneBean.tousProfils}" var="pr"
+                                       itemLabel="#{pr.libelle}" itemValue="#{pr.id}"/>
+                    </p:selectOneMenu>
+                    <p:commandButton value="#{msg['action.confirmer']}" icon="pi pi-plus"
+                                     action="#{personneBean.ajouterProfil}" process=":secTabs:frmP:dlgProfils"
+                                     update=":secTabs:frmP:tblRoles :secTabs:frmP:tbl :growl"/>
+                </div>
+                <p:dataTable id="tblRoles" widgetVar="tblRoles" var="r" value="#{personneBean.rolesPersonne}"
+                             emptyMessage="#{msg['common.aucuneDonnee']}">
+                    <p:column headerText="#{msg['role.profil']}">#{r.profilLibelle}</p:column>
+                    <p:column headerText="#{msg['role.dateAttribution']}">
+                        <h:outputText value="#{r.dateAttribution}">
+                            <f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="#{msg['common.etat']}" style="width:8rem">
+                        <p:tag value="#{r.etat ? msg['common.actif'] : msg['common.inactif']}"
+                               severity="#{r.etat ? 'success' : 'danger'}"/>
+                    </p:column>
+                    <p:column style="width:4rem">
+                        <p:commandButton icon="#{r.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                         action="#{personneBean.basculerRole(r)}" update=":secTabs:frmP:tblRoles :secTabs:frmP:tbl :growl"
+                                         styleClass="ui-button-flat"/>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.fermer']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgProfils').hide()"/>
+                </f:facet>
+            </p:dialog>
+
+            <!-- ===== Permissions effectives : cocher / décocher par utilisateur ===== -->
+            <p:dialog id="dlgPerms" widgetVar="dlgPerms" modal="true" resizable="false" width="720" responsive="true"
+                      header="#{msg['personne.voirPermissions']} — #{personneBean.personnePerms.nomComplet}">
+                <p:messages showDetail="true" closable="true"/>
+                <p class="gs-page__intro" style="margin:0 0 12px">#{msg['personne.permsEffectives.hint']}</p>
+                <p:dataTable var="pm" value="#{personneBean.permsEffectives}" paginator="true" rows="8"
+                             paginatorPosition="bottom" emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+                    <p:column headerText="#{msg['common.actif']}" style="width:3.5rem">
+                        <p:selectBooleanCheckbox value="#{personneBean.coche[pm.permissionId]}"/>
+                    </p:column>
+                    <p:column headerText="#{msg['permission.code']}" style="width:6rem">#{pm.code}</p:column>
+                    <p:column headerText="#{msg['permission.libelle']}">#{pm.libelle}</p:column>
+                    <p:column headerText="#{msg['permission.branche']}">#{pm.brancheLibelle}</p:column>
+                    <p:column headerText="#{msg['common.etat']}" style="width:11rem">
+                        <p:tag value="#{msg['personne.perms.source.'.concat(pm.sourceCode)]}"
+                               severity="#{pm.sourceCode eq 'DIRECTE_RETIREE' ? 'danger' : pm.sourceCode eq 'DIRECTE_ACCORDEE' ? 'success' : 'info'}"/>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.fermer']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgPerms').hide()"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{personneBean.enregistrerPermissions}"
+                                     update=":secTabs:frmP:dlgPerms :secTabs:frmP:tbl :growl"
+                                     oncomplete="if (args &amp;&amp; args.permsOk) PF('dlgPerms').hide()" process=":secTabs:frmP:dlgPerms"/>
+                </f:facet>
+            </p:dialog>
+
+    </h:form>
+</ui:composition>

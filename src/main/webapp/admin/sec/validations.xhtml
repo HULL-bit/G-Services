@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['comptes.validations.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['comptes.validations.intro']}</p>
+
+        <h:form id="frmVal">
+            <h3 class="gs-tab-h">
+                <i class="pi pi-user-plus" style="margin-right:6px"></i>#{msg['comptes.val.comptes']}
+                <p:tag value="#{comptesBean.comptesEnAttente.size()}" severity="warning" style="margin-left:8px"/>
+            </h3>
+            <p:dataTable id="tblC" var="cpt" value="#{comptesBean.comptesEnAttente}" styleClass="gs-card"
+                         emptyMessage="#{msg['comptes.val.aucunCompte']}">
+                <p:column headerText="#{msg['personne.nom']}">
+                    <strong>#{cpt.prenom} #{cpt.nom}</strong>
+                    <div class="gs-hint">#{cpt.login}<h:outputText value=" · #{cpt.email1}" rendered="#{not empty cpt.email1}"/></div>
+                </p:column>
+                <p:column headerText="#{msg['comptes.f.type']}">
+                    <p:tag value="#{empty cpt.categorieSpecialiteLibelle ? msg['comptes.type.client'] : msg['comptes.type.fournisseur']}"
+                           severity="info"/>
+                    <h:outputText styleClass="gs-hint" value=" #{cpt.categorieSpecialiteLibelle}"
+                                  rendered="#{not empty cpt.categorieSpecialiteLibelle}"/>
+                </p:column>
+                <p:column headerText="#{msg['comptes.f.service']}">
+                    <h:outputText value="#{cpt.serviceGereLibelle}" rendered="#{not empty cpt.serviceGereLibelle}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:14rem">
+                    <p:commandButton value="#{msg['comptes.act.valider']}" icon="pi pi-check" styleClass="ui-button-sm"
+                                     process="@this" action="#{comptesBean.validerCompte(cpt)}"
+                                     update=":frmVal :growl"/>
+                    <p:commandButton value="#{msg['comptes.act.refuser']}" icon="pi pi-times"
+                                     styleClass="ui-button-sm ui-button-outlined" process="@this"
+                                     action="#{comptesBean.refuserCompte(cpt)}" update=":frmVal :growl">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['comptes.confirm.refus']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+
+            <h3 class="gs-tab-h" style="margin-top:26px">
+                <i class="pi pi-briefcase" style="margin-right:6px"></i>#{msg['comptes.val.services']}
+                <p:tag value="#{comptesBean.servicesEnAttente.size()}" severity="warning" style="margin-left:8px"/>
+            </h3>
+            <p:dataTable id="tblS" var="s" value="#{comptesBean.servicesEnAttente}" styleClass="gs-card"
+                         emptyMessage="#{msg['comptes.val.aucunService']}">
+                <p:column headerText="#{msg['cat.f.service']}">
+                    <strong>#{s.libelle}</strong>
+                    <div class="gs-hint">#{s.description}</div>
+                </p:column>
+                <p:column headerText="#{msg['cat.f.categorie']}">#{s.categorieServiceLibelle}</p:column>
+                <p:column headerText="#{msg['comptes.f.proprietaire']}">#{s.proprietaireNom}</p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:14rem">
+                    <p:commandButton value="#{msg['comptes.act.valider']}" icon="pi pi-check" styleClass="ui-button-sm"
+                                     process="@this" action="#{comptesBean.validerService(s)}"
+                                     update=":frmVal :growl"/>
+                    <p:commandButton value="#{msg['comptes.act.refuser']}" icon="pi pi-times"
+                                     styleClass="ui-button-sm ui-button-outlined" process="@this"
+                                     action="#{comptesBean.refuserService(s)}" update=":frmVal :growl">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['comptes.confirm.refus']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300" role="img"><title>Services à domicile</title><rect width="480" height="300" rx="18" fill="#F1F5F9"/><rect width="480" height="300" rx="18" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1F3A5F" stop-opacity=".14"/><stop offset="1" stop-color="#C9A227" stop-opacity=".22"/></linearGradient></defs>
+<path d="M120 160l120-84 120 84" fill="none" stroke="#1F3A5F" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="150" y="150" width="180" height="90" rx="8" fill="#fff" stroke="#1F3A5F" stroke-width="6"/>
+<path d="M262 176l14-14 26 26-14 14zM214 214l30-30" stroke="#C9A227" stroke-width="10" stroke-linecap="round"/>
+<circle cx="204" cy="196" r="12" fill="#C9A227"/>
+</svg>

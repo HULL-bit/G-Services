@@ -1,0 +1,105 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmAvis">
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{avisBean.filtre}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update="tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <p:selectOneButton value="#{avisBean.etat}">
+                <f:selectItem itemLabel="#{msg['avis.etat.attente']}" itemValue="EN_ATTENTE"/>
+                <f:selectItem itemLabel="#{msg['avis.etat.moderes']}" itemValue="MODERES"/>
+                <f:selectItem itemLabel="#{msg['avis.etat.tous']}" itemValue="TOUS"/>
+                <p:ajax update="tbl"/>
+            </p:selectOneButton>
+            <span class="gs-spacer"></span>
+            <p:tag value="#{avisBean.nombreEnAttente} #{msg['avis.enAttente']}" severity="warning"
+                   icon="pi pi-clock" rendered="#{avisBean.nombreEnAttente gt 0}"/>
+            <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                             rendered="#{utilisateurCourant.autorise(perms.AVIS_EXPORTER)}">
+                <p:dataExporter type="csv" target="tbl" fileName="avis"/>
+            </p:commandButton>
+        </div>
+
+        <p:dataTable id="tbl" var="a" value="#{avisBean.model}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['avis.f.note']}" style="width:7rem">
+                <p:rating value="#{a.note}" readonly="true" cancel="false" stars="5"/>
+            </p:column>
+            <p:column headerText="#{msg['avis.f.cible']}">
+                <p:tag value="#{a.cibleType eq 'SERVICE' ? msg['avis.cible.service'] : msg['avis.cible.produit']}"
+                       severity="info"/>
+                #{a.cibleLibelle}
+            </p:column>
+            <p:column headerText="#{msg['avis.f.auteur']}">#{a.personneNom}</p:column>
+            <p:column headerText="#{msg['avis.f.commentaire']}" style="max-width:22rem">
+                <div style="white-space:normal">#{a.commentaire}</div>
+                <ui:fragment rendered="#{not empty a.reponsePrestataire}">
+                    <div class="gs-hint" style="margin-top:4px">
+                        <i class="pi pi-reply"></i> #{a.reponsePrestataire}
+                    </div>
+                </ui:fragment>
+            </p:column>
+            <p:column headerText="#{msg['avis.f.date']}" style="width:8rem">
+                <h:outputText value="#{a.date}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
+            </p:column>
+            <p:column headerText="#{msg['avis.f.statut']}" style="width:9rem">
+                <p:tag value="#{msg['avis.statut.attente']}" severity="warning" rendered="#{not a.estModere}"/>
+                <p:tag value="#{msg['avis.statut.publie']}" severity="success" rendered="#{a.estModere and a.etat}"/>
+                <p:tag value="#{msg['avis.statut.masque']}" severity="danger" rendered="#{a.estModere and not a.etat}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:12rem" exportable="false">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-check" title="#{msg['avis.approuver']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.AVIS_MODERER) and not a.estModere}"
+                                     action="#{avisBean.approuver(a)}" update=":modTabs:frmAvis:tbl :growl" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="pi pi-times" title="#{msg['avis.rejeter']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.AVIS_MODERER) and not a.estModere}"
+                                     action="#{avisBean.rejeter(a)}" update=":modTabs:frmAvis:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['avis.rejeter.confirm']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                    <p:commandButton icon="pi pi-reply" title="#{msg['avis.repondre']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.AVIS_REPONDRE)}"
+                                     action="#{avisBean.preparerReponse(a)}" update=":modTabs:frmAvis:dlgRep"
+                                     oncomplete="PF('dlgRep').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{a.etat ? 'pi pi-eye-slash' : 'pi pi-eye'}"
+                                     title="#{a.etat ? msg['avis.masquer'] : msg['avis.afficher']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.AVIS_SUPPRIMER) and a.estModere}"
+                                     action="#{avisBean.basculerEtat(a)}" update=":modTabs:frmAvis:tbl :growl" styleClass="ui-button-flat"/>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <p:dialog id="dlgRep" widgetVar="dlgRep" modal="true" resizable="false" width="560" responsive="true"
+                  header="#{msg['avis.repondre']}">
+            <p:messages showDetail="true" closable="true"/>
+            <p class="gs-hint" style="margin:0 0 10px">
+                <p:rating value="#{avisBean.selection.note}" readonly="true" cancel="false" stars="5"/>
+                &#160; #{avisBean.selection.personneNom} — #{avisBean.selection.cibleLibelle}
+            </p>
+            <blockquote style="margin:0 0 12px;padding:8px 12px;border-left:3px solid var(--gs-border);color:var(--gs-text-soft)">
+                #{avisBean.selection.commentaire}
+            </blockquote>
+            <div class="gs-field-v">
+                <label>#{msg['avis.reponse']}</label>
+                <p:inputTextarea value="#{avisBean.reponse}" rows="4" maxlength="2000" autoResize="false" style="width:100%"/>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgRep').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{avisBean.enregistrerReponse}" process=":modTabs:frmAvis:dlgRep"
+                                 update=":modTabs:frmAvis:tbl :modTabs:frmAvis:dlgRep :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgRep').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

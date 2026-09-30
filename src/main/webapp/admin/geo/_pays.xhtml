@@ -1,0 +1,119 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmPays">
+
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{geographieBean.filtrePays}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":geoTabs:frmPays:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.GEO_CREER)}"
+                             action="#{geographieBean.nouveauPays}" update=":geoTabs:frmPays:dlgPays"
+                             oncomplete="PF('dlgPays').show()"/>
+            <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                             rendered="#{utilisateurCourant.autorise(perms.GEO_EXPORTER)}">
+                <p:dataExporter type="csv" target="tbl" fileName="pays"/>
+            </p:commandButton>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{geographieBean.pays}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="" style="width:3rem"><span style="font-size:1.3rem">#{row.drapeauEmoji}</span></p:column>
+            <p:column headerText="#{msg['geo.f.libelle']}" sortBy="#{row.libelle}">#{row.libelle}</p:column>
+            <p:column headerText="ISO" style="width:6rem">#{row.codeIso2}/#{row.codeIso3}</p:column>
+            <p:column headerText="#{msg['geo.f.capitale']}">#{row.capitale}</p:column>
+            <p:column headerText="#{msg['geo.f.indicatif']}" style="width:6rem">#{row.indicatifTelephonique}</p:column>
+            <p:column headerText="#{msg['geo.f.devise']}" style="width:5rem">#{row.devise}</p:column>
+            <p:column headerText="#{msg['geo.f.zone']}">#{row.zoneGeographiqueLibelle}</p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:8rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:8rem" exportable="false">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.GEO_MODIFIER)}"
+                                     action="#{geographieBean.editerPays(row)}" update=":geoTabs:frmPays:dlgPays"
+                                     oncomplete="PF('dlgPays').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     title="#{row.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                     rendered="#{utilisateurCourant.autorise(perms.GEO_SUPPRIMER)}"
+                                     action="#{geographieBean.basculerPays(row)}"
+                                     update=":geoTabs:frmPays:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <p:dialog id="dlgPays" widgetVar="dlgPays" modal="true" resizable="false" width="720" responsive="true"
+                  header="#{empty geographieBean.unPays.id ? msg['geo.pays.nouveau'] : msg['geo.pays.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <div class="gs-form-grid">
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.zone']}</label>
+                    <p:selectOneMenu value="#{geographieBean.unPays.zoneGeographiqueId}" required="true"
+                                     filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{geographieBean.refZones}" var="z"
+                                       itemLabel="#{z.continentLibelle} › #{z.libelle}" itemValue="#{z.id}"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.libelle']}</label>
+                    <p:inputText value="#{geographieBean.unPays.libelle}" required="true" maxlength="100"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>Code ISO-2</label>
+                    <p:inputText value="#{geographieBean.unPays.codeIso2}" maxlength="2" style="text-transform:uppercase"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>Code ISO-3</label>
+                    <p:inputText value="#{geographieBean.unPays.codeIso3}" maxlength="3" style="text-transform:uppercase"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.indicatif']}</label>
+                    <p:inputText value="#{geographieBean.unPays.indicatifTelephonique}" maxlength="10" placeholder="+221"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.devise']}</label>
+                    <p:inputText value="#{geographieBean.unPays.devise}" maxlength="10" placeholder="XOF"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.capitale']}</label>
+                    <p:inputText value="#{geographieBean.unPays.capitale}" maxlength="100"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.langue']}</label>
+                    <p:inputText value="#{geographieBean.unPays.langueOfficielle}" maxlength="80"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.superficie']} (km²)</label>
+                    <p:inputNumber value="#{geographieBean.unPays.superficieKm2}" decimalPlaces="0" minValue="0"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.population']}</label>
+                    <p:inputNumber value="#{geographieBean.unPays.population}" decimalPlaces="0" minValue="0"/>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgPays').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{geographieBean.enregistrerPays}" process=":geoTabs:frmPays:dlgPays"
+                                 update=":geoTabs:frmPays:tbl :geoTabs:frmPays:dlgPays :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgPays').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

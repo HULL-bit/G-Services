@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['comptes.clients.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['comptes.clients.intro']}</p>
+
+        <h:form id="frmCli">
+            <div class="gs-page__head">
+                <span class="ui-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <p:inputText value="#{comptesBean.filtreClient}" placeholder="#{msg['action.rechercher']}">
+                        <p:ajax event="keyup" update="tbl" delay="350"/>
+                    </p:inputText>
+                </span>
+                <span class="gs-spacer"></span>
+                <p:commandButton value="#{msg['comptes.client.nouveau']}" icon="pi pi-plus" process="@this"
+                                 rendered="#{utilisateurCourant.autorise(perms.CLIENT_GERER)}"
+                                 update=":frmCli:dlgCli" oncomplete="PF('dlgCli').show()"/>
+            </div>
+
+            <p:dataTable id="tbl" var="cpt" value="#{comptesBean.clients}" lazy="true"
+                         paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                         emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+                <p:column headerText="#{msg['personne.nom']}" sortBy="#{cpt.nom}">
+                    <strong>#{cpt.prenom} #{cpt.nom}</strong>
+                    <div class="gs-hint">#{cpt.login}<h:outputText value=" · #{cpt.email1}" rendered="#{not empty cpt.email1}"/></div>
+                </p:column>
+                <p:column headerText="#{msg['personne.telephone1']}">#{cpt.telephone1}</p:column>
+                <p:column headerText="#{msg['common.etat']}" style="width:11rem">
+                    <p:tag value="#{msg['comptes.statut.attente']}" severity="warning" icon="pi pi-clock"
+                           rendered="#{not cpt.valide}"/>
+                    <p:tag value="#{cpt.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{cpt.etat ? 'success' : 'danger'}" rendered="#{cpt.valide}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:9rem"
+                          rendered="#{utilisateurCourant.autorise(perms.CLIENT_GERER)}">
+                    <p:commandButton icon="#{cpt.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                     title="#{cpt.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                     process="@this" action="#{comptesBean.basculerClient(cpt)}"
+                                     update=":frmCli:tbl :growl">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+
+            <p:dialog id="dlgCli" widgetVar="dlgCli" modal="true" resizable="false" width="520" responsive="true"
+                      header="#{msg['comptes.client.nouveau']}">
+                <p:messages showDetail="true" closable="true"/>
+                <div class="gs-form-grid">
+                    <div class="gs-field-v"><label>#{msg['personne.prenom']}</label>
+                        <p:inputText value="#{comptesBean.nouveauClient.prenom}" required="true" maxlength="80"/></div>
+                    <div class="gs-field-v"><label>#{msg['personne.nom']}</label>
+                        <p:inputText value="#{comptesBean.nouveauClient.nom}" required="true" maxlength="80"/></div>
+                    <div class="gs-field-v"><label>#{msg['personne.login']}</label>
+                        <p:inputText value="#{comptesBean.nouveauClient.login}" required="true" maxlength="60"/></div>
+                    <div class="gs-field-v"><label>#{msg['personne.email']}</label>
+                        <p:inputText value="#{comptesBean.nouveauClient.email}" maxlength="150"/></div>
+                    <div class="gs-field-v"><label>#{msg['personne.telephone1']}</label>
+                        <p:inputText value="#{comptesBean.nouveauClient.telephone}" maxlength="30"/></div>
+                    <div class="gs-field-v"><label>#{msg['comptes.f.motDePasse']}</label>
+                        <p:password value="#{comptesBean.nouveauClient.motDePasse}" required="true" toggleMask="true"/></div>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgCli').hide()"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{comptesBean.creerClient}" process=":frmCli:dlgCli"
+                                     update=":frmCli:dlgCli :frmCli:tbl :growl"
+                                     oncomplete="if (args &amp;&amp; args.ok) PF('dlgCli').hide()"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,88 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmCat">
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{catalogueBean.filtreCategorie}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":catTabs:frmCat:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_CREER)}"
+                             action="#{catalogueBean.nouvelleCategorie}" update=":catTabs:frmCat:dlgCat"
+                             oncomplete="PF('dlgCat').show()"/>
+            <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                             rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_EXPORTER)}">
+                <p:dataExporter type="csv" target="tbl" fileName="categories"/>
+            </p:commandButton>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{catalogueBean.categories}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['cat.f.ordre']}" sortBy="#{row.ordreAffichage}" style="width:5rem">#{row.ordreAffichage}</p:column>
+            <p:column headerText="#{msg['geo.f.libelle']}" sortBy="#{row.libelle}">
+                <i class="#{row.icone}" style="margin-right:8px"></i>#{row.libelle}
+            </p:column>
+            <p:column headerText="#{msg['geo.f.description']}">#{row.description}</p:column>
+            <p:column headerText="#{msg['cat.f.services']}" style="width:6rem">#{row.nbServices}</p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:8rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:8rem" exportable="false">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_MODIFIER)}"
+                                     action="#{catalogueBean.editerCategorie(row)}" update=":catTabs:frmCat:dlgCat"
+                                     oncomplete="PF('dlgCat').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     title="#{row.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_SUPPRIMER)}"
+                                     action="#{catalogueBean.basculerCategorie(row)}"
+                                     update=":catTabs:frmCat:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <p:dialog id="dlgCat" widgetVar="dlgCat" modal="true" resizable="false" width="560" responsive="true"
+                  header="#{empty catalogueBean.categorie.id ? msg['cat.categorie.nouveau'] : msg['cat.categorie.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <div class="gs-form-grid">
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.libelle']}</label>
+                    <p:inputText value="#{catalogueBean.categorie.libelle}" required="true" maxlength="100"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['branche.icone']}</label>
+                    <p:inputText value="#{catalogueBean.categorie.icone}" maxlength="60" placeholder="pi pi-..."/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.ordre']}</label>
+                    <p:spinner value="#{catalogueBean.categorie.ordreAffichage}" min="0"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.description']}</label>
+                    <p:inputTextarea value="#{catalogueBean.categorie.description}" rows="2" maxlength="255" autoResize="false"/>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgCat').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{catalogueBean.enregistrerCategorie}" process=":catTabs:frmCat:dlgCat"
+                                 update=":catTabs:frmCat:tbl :catTabs:frmCat:dlgCat :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgCat').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

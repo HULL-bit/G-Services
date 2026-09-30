@@ -1,0 +1,82 @@
+/* ============================================================================
+   G-SERVICES — Animations (GPU only : transform / opacity)
+   Toutes les animations décoratives sont désactivées si l'utilisateur a
+   demandé « prefers-reduced-motion ».
+   ========================================================================== */
+
+/* ---- Apparition au scroll (IntersectionObserver -> classe .is-visible) ---- */
+[data-aos] {
+  opacity: 0;
+  transition: opacity .7s var(--gs-ease), transform .7s var(--gs-ease);
+  will-change: opacity, transform;
+}
+[data-aos="fade-up"]   { transform: translateY(40px); }
+[data-aos="fade-down"] { transform: translateY(-40px); }
+[data-aos="fade-left"] { transform: translateX(40px); }
+[data-aos="fade-right"]{ transform: translateX(-40px); }
+[data-aos="zoom-in"]   { transform: scale(.9); }
+
+[data-aos].is-visible { opacity: 1; transform: none; }
+
+/* Cascade : data-aos-delay géré en JS via style transition-delay */
+
+/* ---- Keyframes --------------------------------------------------------- */
+@keyframes gs-gradient-move {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes gs-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(201,162,39,.6); }
+  70%  { box-shadow: 0 0 0 12px rgba(201,162,39,0); }
+  100% { box-shadow: 0 0 0 0 rgba(201,162,39,0); }
+}
+@keyframes gs-caret {
+  0%, 49%  { opacity: 1; }
+  50%, 100%{ opacity: 0; }
+}
+@keyframes gs-scroll-cue {
+  0%   { transform: scaleY(0); transform-origin: top; }
+  40%  { transform: scaleY(1); transform-origin: top; }
+  60%  { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+@keyframes gs-ripple {
+  to { transform: scale(2.6); opacity: 0; }
+}
+@keyframes gs-shimmer {
+  100% { transform: translateX(100%); }
+}
+@keyframes gs-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+/* ---- Skeleton / shimmer (chargements) -------------------------------- */
+.gs-skeleton {
+  position: relative; overflow: hidden;
+  background: rgba(31,58,95,.08); border-radius: var(--gs-radius-sm);
+}
+.gs-skeleton::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+  animation: gs-shimmer 1.4s infinite;
+}
+
+/* ---- Transition de page (rendu AJAX PrimeFaces) --------------------- */
+.gs-fade-enter { animation: gs-fade-in .45s var(--gs-ease) both; }
+@keyframes gs-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---- prefers-reduced-motion : on coupe tout ce qui bouge ------------ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  [data-aos] { opacity: 1 !important; transform: none !important; }
+  .gs-hero__glow, .gs-hero__scroll::after, .gs-hero__badge::before { animation: none !important; }
+  .gs-hero__video { display: none; }          /* on garde le poster fixe */
+  .gs-parallax__bg { transform: none !important; }
+}

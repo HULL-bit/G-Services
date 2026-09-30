@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['securite.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['securite.intro']}</p>
+
+        <p:tabView id="secTabs" dynamic="true" cache="true" styleClass="gs-sec-tabs">
+
+            <p:tab title="#{msg['securite.tab.comptes']}" titleStyleClass="pi pi-users">
+                <h3 class="gs-tab-h">#{msg['personne.title']}</h3>
+                <p class="gs-page__intro" style="margin-top:0">#{msg['personne.intro']}</p>
+                <ui:include src="/admin/sec/_personne.xhtml"/>
+            </p:tab>
+
+            <p:tab title="#{msg['securite.tab.habilitations']}" titleStyleClass="pi pi-key">
+                <h3 class="gs-tab-h">#{msg['securite.habilitations']}</h3>
+                <p class="gs-page__intro" style="margin-top:0">#{msg['securite.habilitations.intro']}</p>
+
+                <p:fieldset legend="#{msg['profil.title']}" toggleable="true" styleClass="gs-sec-group">
+                    <ui:include src="/admin/sec/_profil.xhtml"/>
+                </p:fieldset>
+
+                <p:fieldset legend="#{msg['permission.title']}" toggleable="true" collapsed="true"
+                           styleClass="gs-sec-group">
+                    <ui:include src="/admin/sec/_permission.xhtml"/>
+                </p:fieldset>
+
+                <p:fieldset legend="#{msg['branche.title']}" toggleable="true" collapsed="true"
+                           styleClass="gs-sec-group">
+                    <ui:include src="/admin/sec/_branche.xhtml"/>
+                </p:fieldset>
+            </p:tab>
+        </p:tabView>
+
+        <!-- Les classes d'association Role (Personne × Profil) et RoleProfil (Profil ×
+             Permission) restent pleinement administrables : via l'action « Gérer les
+             profils » de l'onglet Comptes, et « Gérer les droits » de la section Profils. -->
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['stock.title']}</ui:define>
+
+    <ui:define name="head">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+        <script src="#{resource['js/geo.js']}"></script>
+    </ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['stock.intro']}</p>
+
+        <p:tabView id="stkTabs" dynamic="true" cache="true" styleClass="gs-sec-tabs">
+            <p:tab title="#{msg['stock.tab.stocks']}" titleStyleClass="pi pi-box">
+                <h3 class="gs-tab-h">#{msg['stock.stocks']}</h3>
+                <p class="gs-page__intro" style="margin-top:0">#{msg['stock.stocks.intro']}</p>
+                <ui:include src="/admin/stock/_stocks.xhtml"/>
+            </p:tab>
+            <p:tab title="#{msg['stock.tab.prestataires']}" titleStyleClass="pi pi-map-marker">
+                <h3 class="gs-tab-h">#{msg['stock.prestataires']}</h3>
+                <p class="gs-page__intro" style="margin-top:0">#{msg['stock.prestataires.intro']}</p>
+                <ui:include src="/admin/stock/_prestataires.xhtml"/>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300" role="img"><title>Immobilier</title><rect width="480" height="300" rx="18" fill="#F1F5F9"/><rect width="480" height="300" rx="18" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1F3A5F" stop-opacity=".14"/><stop offset="1" stop-color="#C9A227" stop-opacity=".22"/></linearGradient></defs>
+<path d="M130 160l110-70 110 70v90H130z" fill="#fff" stroke="#1F3A5F" stroke-width="6" stroke-linejoin="round"/>
+<rect x="210" y="188" width="60" height="62" fill="#1F3A5F" opacity=".12"/>
+<circle cx="240" cy="120" r="14" fill="none" stroke="#C9A227" stroke-width="8"/><path d="M240 134v18" stroke="#C9A227" stroke-width="8" stroke-linecap="round"/>
+</svg>

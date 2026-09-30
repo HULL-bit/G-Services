@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['dash.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['dash.intro']}</p>
+
+        <div class="gs-kpi-grid">
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up">
+                <div class="gs-kpi-card__icon"><i class="pi pi-users"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.personnes}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.personnes']}</div>
+                </div>
+            </a>
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="60">
+                <div class="gs-kpi-card__icon"><i class="pi pi-check-circle"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.personnesActives}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.personnesActives']}</div>
+                </div>
+            </a>
+            <a class="gs-kpi-card -warn -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="120">
+                <div class="gs-kpi-card__icon"><i class="pi pi-lock"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.personnesVerrouillees}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.personnesVerrouillees']}</div>
+                </div>
+            </a>
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="180">
+                <div class="gs-kpi-card__icon"><i class="pi pi-id-card"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.profils}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.profils']}</div>
+                </div>
+            </a>
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="240">
+                <div class="gs-kpi-card__icon"><i class="pi pi-key"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.permissions}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.permissions']}</div>
+                </div>
+            </a>
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="300">
+                <div class="gs-kpi-card__icon"><i class="pi pi-sitemap"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.branches}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.branches']}</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="gs-dash-cols">
+            <div class="gs-card" style="padding:22px 24px" data-aos="fade-up">
+                <h3 style="margin:0 0 2px">#{msg['dash.repartition.title']}</h3>
+                <p style="margin:0; color:var(--gs-text-soft); font-size:.86rem">#{msg['dash.repartition.hint']}</p>
+                <div class="gs-bars">
+                    <ui:repeat value="#{dashboardBean.repartition}" var="r">
+                        <div class="gs-bar__row">
+                            <span>#{r.libelle}</span>
+                            <span class="gs-bar__track"><span class="gs-bar__fill" style="width:#{r.pourcent}%"></span></span>
+                            <span class="gs-bar__val">#{r.valeur}</span>
+                        </div>
+                    </ui:repeat>
+                </div>
+            </div>
+
+            <div class="gs-card" style="padding:22px 24px" data-aos="fade-up" data-aos-delay="80">
+                <h3 style="margin:0 0 8px">#{msg['dash.locked.title']}</h3>
+                <h:panelGroup layout="block" rendered="#{empty dashboardBean.comptesVerrouilles}"
+                              style="color:var(--gs-text-soft); font-size:.88rem">
+                    <i class="pi pi-shield" style="color:var(--gs-success); margin-right:6px"></i>#{msg['dash.locked.none']}
+                </h:panelGroup>
+                <ui:repeat value="#{dashboardBean.comptesVerrouilles}" var="c">
+                    <div class="gs-lock-item">
+                        <i class="pi pi-lock"></i>
+                        <span style="flex:1">#{c.nomComplet} <small style="color:var(--gs-text-soft)">(#{c.login})</small></span>
+                    </div>
+                </ui:repeat>
+            </div>
+        </div>
+
+        <div class="gs-card gs-dash-note" data-aos="fade-up">
+            <h3>#{msg['dash.next.title']}</h3>
+            <p style="margin:0; color:var(--gs-text-soft)">#{msg['dash.next.text']}</p>
+        </div>
+    </ui:define>
+</ui:composition>

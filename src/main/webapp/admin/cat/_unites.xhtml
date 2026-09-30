@@ -1,0 +1,72 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmUnite">
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{catalogueBean.filtreUnite}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":catTabs:frmUnite:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_CREER)}"
+                             action="#{catalogueBean.nouvelleUnite}" update=":catTabs:frmUnite:dlgUnite"
+                             oncomplete="PF('dlgUnite').show()"/>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{catalogueBean.unites}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['geo.f.libelle']}" sortBy="#{row.libelle}">#{row.libelle}</p:column>
+            <p:column headerText="#{msg['cat.f.symbole']}" sortBy="#{row.symbole}" style="width:8rem">#{row.symbole}</p:column>
+            <p:column headerText="#{msg['cat.f.proprietes']}" style="width:8rem">#{row.nbProprietes}</p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:8rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:8rem">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-pencil" process="@this" title="#{msg['action.editer']}"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_MODIFIER)}"
+                                     action="#{catalogueBean.editerUnite(row)}" update=":catTabs:frmUnite:dlgUnite"
+                                     oncomplete="PF('dlgUnite').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_SUPPRIMER)}"
+                                     action="#{catalogueBean.basculerUnite(row)}"
+                                     update=":catTabs:frmUnite:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <p:dialog id="dlgUnite" widgetVar="dlgUnite" modal="true" resizable="false" width="460" responsive="true"
+                  header="#{empty catalogueBean.unite.id ? msg['cat.unite.nouveau'] : msg['cat.unite.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <div class="gs-form-grid">
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.libelle']}</label>
+                    <p:inputText value="#{catalogueBean.unite.libelle}" required="true" maxlength="60"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['cat.f.symbole']}</label>
+                    <p:inputText value="#{catalogueBean.unite.symbole}" maxlength="12" placeholder="kg, L, pc…"/>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgUnite').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{catalogueBean.enregistrerUnite}" process=":catTabs:frmUnite:dlgUnite"
+                                 update=":catTabs:frmUnite:tbl :catTabs:frmUnite:dlgUnite :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgUnite').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

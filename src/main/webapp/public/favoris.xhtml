@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/layout.xhtml">
+
+    <ui:define name="title">#{msg['vitrine.favoris.title']} — #{msg['app.name']}</ui:define>
+
+    <ui:define name="head">
+        <link rel="stylesheet" type="text/css" href="#{resource['css/vitrine.css']}"/>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <section class="gs-vitrine-hero" role="banner"
+                 style="background-image:linear-gradient(120deg, rgba(17,24,39,.82), rgba(31,58,95,.72)), url('#{resource['media/backgrounds/discover-map.jpg']}')">
+            <div class="gs-container">
+                <p class="gs-eyebrow">#{msg['vitrine.favoris.eyebrow']}</p>
+                <h1>#{msg['vitrine.favoris.title']}</h1>
+                <p class="gs-lead">#{msg['vitrine.favoris.lead']}</p>
+            </div>
+        </section>
+
+        <h:form id="favListForm" styleClass="gs-container gs-vitrine-body" prependId="false">
+
+            <ui:fragment rendered="#{not utilisateurCourant.authentifie}">
+                <div class="gs-empty">
+                    <i class="pi pi-heart"></i>
+                    <p>#{msg['vitrine.favoris.connexion']}</p>
+                    <h:link outcome="/admin/index" styleClass="gs-btn">#{msg['nav.login']}</h:link>
+                </div>
+            </ui:fragment>
+
+            <ui:fragment rendered="#{utilisateurCourant.authentifie and empty favoriBean.favoris}">
+                <div class="gs-empty">
+                    <i class="pi pi-heart"></i>
+                    <p>#{msg['vitrine.favoris.aucun']}</p>
+                    <h:link outcome="/public/catalogue" styleClass="gs-btn">#{msg['vitrine.favoris.parcourir']}</h:link>
+                </div>
+            </ui:fragment>
+
+            <h:panelGroup id="favGrid" layout="block" styleClass="gs-service-grid"
+                          rendered="#{utilisateurCourant.authentifie and not empty favoriBean.favoris}">
+                <ui:repeat value="#{favoriBean.favoris}" var="f" varStatus="st">
+                    <article class="gs-service-card" data-aos="fade-up" data-aos-delay="#{(st.index % 6) * 70}">
+                        <div class="gs-service-card__top">
+                            <span class="gs-service-card__icon"><i class="#{f.categorieIcone}"></i></span>
+                            <span class="gs-badge #{f.disponible ? '-ok' : '-off'}">
+                                #{f.disponible ? msg['vitrine.ouvert'] : msg['vitrine.ferme']}
+                            </span>
+                        </div>
+                        <h3>#{f.serviceLibelle}</h3>
+                        <p class="gs-service-card__meta">
+                            <i class="pi pi-map-marker"></i> #{empty f.villeLibelle ? msg['vitrine.nonLocalise'] : f.villeLibelle}
+                        </p>
+                        <p class="gs-service-card__desc">#{f.serviceDescription}</p>
+                        <div class="gs-service-card__foot">
+                            <span class="gs-stars" data-note="#{f.noteMoyenne}" title="#{f.noteMoyenne}">★★★★★<small>(#{f.nombreAvis})</small></span>
+                            <span class="gs-fav-card__actions">
+                                <p:commandLink styleClass="gs-fav-remove" process="@this" action="#{favoriBean.retirer(f.serviceId)}"
+                                               update="favGrid" title="#{msg['vitrine.favori.retirer']}">
+                                    <i class="pi pi-heart-fill"></i>
+                                </p:commandLink>
+                                <h:link outcome="/public/service" styleClass="gs-btn -sm">
+                                    <f:param name="id" value="#{f.serviceId}"/>
+                                    #{msg['vitrine.voir']}
+                                </h:link>
+                            </span>
+                        </div>
+                    </article>
+                </ui:repeat>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+</ui:composition>

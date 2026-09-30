@@ -1,0 +1,204 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmVille">
+
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{geographieBean.filtreVille}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":geoTabs:frmVille:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.GEO_CREER)}"
+                             action="#{geographieBean.nouvelleVille}" update=":geoTabs:frmVille:dlgVille"
+                             oncomplete="PF('dlgVille').show()"/>
+            <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                             rendered="#{utilisateurCourant.autorise(perms.GEO_EXPORTER)}">
+                <p:dataExporter type="csv" target="tbl" fileName="villes"/>
+            </p:commandButton>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{geographieBean.villes}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['geo.f.libelle']}" sortBy="#{row.libelle}">
+                #{row.libelle} <p:tag value="#{msg['geo.f.capitale']}" severity="warning" rendered="#{row.estCapitale}"/>
+            </p:column>
+            <p:column headerText="#{msg['geo.f.cp']}" style="width:7rem">#{row.codePostal}</p:column>
+            <p:column headerText="#{msg['geo.f.region']}">#{row.regionLibelle}</p:column>
+            <p:column headerText="#{msg['geo.f.pays']}">#{row.paysLibelle}</p:column>
+            <p:column headerText="#{msg['geo.f.population']}" style="width:9rem">
+                <h:outputText value="#{row.population}"><f:convertNumber type="number"/></h:outputText>
+            </p:column>
+            <p:column headerText="#{msg['geo.f.positions']}" style="width:6rem">
+                <p:commandButton icon="pi pi-map-marker" value="#{row.nbPositions}" styleClass="ui-button-flat"
+                                 process="@this" action="#{geographieBean.gererPositions(row)}"
+                                 update=":geoTabs:frmVille:dlgPositions"
+                                 oncomplete="PF('dlgPositions').show(); setTimeout(function(){ gsMapPicker('pickMap', 0, 0); }, 250)"/>
+            </p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:8rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:8rem" exportable="false">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.GEO_MODIFIER)}"
+                                     action="#{geographieBean.editerVille(row)}" update=":geoTabs:frmVille:dlgVille"
+                                     oncomplete="PF('dlgVille').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     title="#{row.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                     rendered="#{utilisateurCourant.autorise(perms.GEO_SUPPRIMER)}"
+                                     action="#{geographieBean.basculerVille(row)}"
+                                     update=":geoTabs:frmVille:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <!-- ============ Dialogue Ville : cascade Continent → Pays → Région ============ -->
+        <p:dialog id="dlgVille" widgetVar="dlgVille" modal="true" resizable="false" width="640" responsive="true"
+                  header="#{empty geographieBean.ville.id ? msg['geo.ville.nouveau'] : msg['geo.ville.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <div class="gs-form-grid">
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.continent']}</label>
+                    <p:selectOneMenu value="#{geographieBean.villeContinentId}" filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{geographieBean.refContinents}" var="c"
+                                       itemLabel="#{c.libelle}" itemValue="#{c.id}"/>
+                        <p:ajax listener="#{geographieBean.onCascadeContinent}"
+                                update=":geoTabs:frmVille:selPays :geoTabs:frmVille:selReg"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.pays']}</label>
+                    <p:selectOneMenu id="selPays" value="#{geographieBean.villePaysId}" filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{geographieBean.cascadePays}" var="p"
+                                       itemLabel="#{p.libelle}" itemValue="#{p.id}"/>
+                        <p:ajax listener="#{geographieBean.onCascadePays}" update=":geoTabs:frmVille:selReg"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.region']}</label>
+                    <p:selectOneMenu id="selReg" value="#{geographieBean.ville.regionId}" required="true"
+                                     filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{geographieBean.cascadeRegions}" var="r"
+                                       itemLabel="#{r.libelle}" itemValue="#{r.id}"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.libelle']}</label>
+                    <p:inputText value="#{geographieBean.ville.libelle}" required="true" maxlength="100"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.cp']}</label>
+                    <p:inputText value="#{geographieBean.ville.codePostal}" maxlength="20"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.indicatif']}</label>
+                    <p:inputText value="#{geographieBean.ville.indicatifZone}" maxlength="20"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.population']}</label>
+                    <p:inputNumber value="#{geographieBean.ville.population}" decimalPlaces="0" minValue="0"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.superficie']} (km²)</label>
+                    <p:inputNumber value="#{geographieBean.ville.superficieKm2}" decimalPlaces="0" minValue="0"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <p:selectBooleanCheckbox value="#{geographieBean.ville.estCapitale}"
+                                             itemLabel="#{msg['geo.ville.estCapitale']}"/>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgVille').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{geographieBean.enregistrerVille}" process=":geoTabs:frmVille:dlgVille"
+                                 update=":geoTabs:frmVille:tbl :geoTabs:frmVille:dlgVille :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgVille').hide()"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- ============================ Dialogue Positions ============================ -->
+        <p:dialog id="dlgPositions" widgetVar="dlgPositions" modal="true" resizable="false" width="820" responsive="true"
+                  header="#{msg['geo.positions.titre']} — #{geographieBean.villePositions.libelle}">
+            <p:messages showDetail="true" closable="true"/>
+
+            <p:dataTable value="#{geographieBean.positionsVille}" var="pos" styleClass="gs-card"
+                         emptyMessage="#{msg['geo.positions.aucune']}">
+                <p:column headerText="Latitude">#{pos.latitude}</p:column>
+                <p:column headerText="Longitude">#{pos.longitude}</p:column>
+                <p:column headerText="#{msg['geo.f.altitude']}">#{pos.altitude}</p:column>
+                <p:column headerText="#{msg['geo.f.releve']}">
+                    <h:outputText value="#{pos.dateReleve}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg['common.etat']}" style="width:7rem">
+                    <p:tag value="#{pos.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{pos.etat ? 'success' : 'danger'}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:7rem">
+                    <p:commandButton icon="pi pi-pencil" styleClass="ui-button-flat" process="@this"
+                                     action="#{geographieBean.editerPosition(pos)}"
+                                     update=":geoTabs:frmVille:posForm"
+                                     oncomplete="gsMapPicker('pickMap', #{pos.latitude}, #{pos.longitude})"/>
+                    <p:commandButton icon="#{pos.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                     process="@this" action="#{geographieBean.basculerPosition(pos)}"
+                                     update=":geoTabs:frmVille:dlgPositions :growl"/>
+                </p:column>
+            </p:dataTable>
+
+            <h:panelGroup id="posForm" layout="block" styleClass="gs-map-wrap" style="margin-top:16px">
+                <h4 style="margin:0 0 10px">#{empty geographieBean.position.id ? msg['geo.position.nouvelle'] : msg['geo.position.edition']}</h4>
+                <div class="gs-map" id="pickMap" style="height:300px;border-radius:12px;overflow:hidden"></div>
+                <p class="gs-hint" style="margin:6px 0 12px">#{msg['geo.position.aide']}</p>
+                <div class="gs-form-grid">
+                    <div class="gs-field-v js-lat">
+                        <label>Latitude</label>
+                        <h:inputText value="#{geographieBean.position.latitude}" styleClass="ui-inputfield ui-inputtext ui-widget"/>
+                    </div>
+                    <div class="gs-field-v js-lng">
+                        <label>Longitude</label>
+                        <h:inputText value="#{geographieBean.position.longitude}" styleClass="ui-inputfield ui-inputtext ui-widget"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['geo.f.altitude']} (m)</label>
+                        <p:inputNumber value="#{geographieBean.position.altitude}" decimalPlaces="0"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['geo.f.precision']} (m)</label>
+                        <p:inputNumber value="#{geographieBean.position.precisionMetres}" decimalPlaces="0" minValue="0"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['geo.f.releve']}</label>
+                        <p:datePicker value="#{geographieBean.position.dateReleve}" pattern="dd/MM/yyyy" showIcon="true"/>
+                    </div>
+                </div>
+                <div style="margin-top:12px;text-align:right">
+                    <p:commandButton value="#{msg['geo.position.nouvelle']}" icon="pi pi-plus"
+                                     styleClass="ui-button-flat" process="@this"
+                                     action="#{geographieBean.preparerPosition}"
+                                     update=":geoTabs:frmVille:posForm"
+                                     oncomplete="gsMapPicker('pickMap', 0, 0)"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{geographieBean.enregistrerPosition}"
+                                     process=":geoTabs:frmVille:posForm"
+                                     update=":geoTabs:frmVille:dlgPositions :geoTabs:frmVille:tbl :growl"
+                                     oncomplete="gsMapPicker('pickMap', 0, 0)"/>
+                </div>
+            </h:panelGroup>
+        </p:dialog>
+    </h:form>
+</ui:composition>

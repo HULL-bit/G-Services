@@ -1,0 +1,41 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmCarte">
+        <p class="gs-page__intro" style="margin-top:0">#{msg['geo.carte.intro']}</p>
+
+        <p:remoteCommand name="rcCarte" action="#{geographieBean.chargerCarte}"
+                         update="carteData" oncomplete="gsRenderCarte()"/>
+
+        <div class="gs-card" style="padding:0;overflow:hidden">
+            <div id="carteMap" class="gs-map" style="height:520px"></div>
+        </div>
+
+        <h:panelGroup id="carteData" layout="block">
+            <script type="application/json" id="carteJson">
+                [<ui:repeat value="#{geographieBean.villesCarte}" var="v" varStatus="s"><h:outputText
+                    value='#{s.index gt 0 ? "," : ""}{"lat":#{v.positions[0].latitude},"lng":#{v.positions[0].longitude},"libelle":"#{v.libelle}","pays":"#{v.paysLibelle}"}'/></ui:repeat>]
+            </script>
+        </h:panelGroup>
+
+        <script>
+            //<![CDATA[
+            function gsRenderCarte() {
+                try {
+                    var raw = document.getElementById('carteJson').textContent || '[]';
+                    window.gsMapView('carteMap', JSON.parse(raw));
+                } catch (e) { console.warn('carte', e); }
+            }
+            (function () {
+                var tries = 0;
+                (function boot() {
+                    if (window.gsMapView && window.PrimeFaces && window.rcCarte) { rcCarte(); }
+                    else if (tries++ < 40) { setTimeout(boot, 150); }
+                })();
+            })();
+            //]]>
+        </script>
+    </h:form>
+</ui:composition>

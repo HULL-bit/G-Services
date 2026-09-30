@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['commande.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['commande.intro']}</p>
+
+        <h:form id="frmCmd">
+            <div class="gs-page__head">
+                <span class="ui-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <p:inputText value="#{commandeBean.filtre}" placeholder="#{msg['action.rechercher']}">
+                        <p:ajax event="keyup" update="tbl" delay="350"/>
+                    </p:inputText>
+                </span>
+                <p:selectOneMenu value="#{commandeBean.statut}" style="min-width:12rem">
+                    <f:selectItem itemLabel="#{msg['commande.statut.tous']}" itemValue="#{null}"/>
+                    <f:selectItems value="#{commandeBean.statuts}" var="s"
+                                   itemLabel="#{msg['commande.statut.'.concat(s)]}" itemValue="#{s}"/>
+                    <p:ajax update="tbl"/>
+                </p:selectOneMenu>
+                <span class="gs-spacer"></span>
+                <p:tag value="#{commandeBean.nombreATraiter} #{msg['commande.aTraiter']}" severity="warning"
+                       icon="pi pi-clock" rendered="#{commandeBean.nombreATraiter gt 0}"/>
+                <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                                 rendered="#{utilisateurCourant.autorise(perms.COMMANDE_EXPORTER)}">
+                    <p:dataExporter type="csv" target="tbl" fileName="commandes"/>
+                </p:commandButton>
+            </div>
+
+            <p:dataTable id="tbl" var="c" value="#{commandeBean.model}" lazy="true"
+                         paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                         paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+                <p:column headerText="#{msg['commande.f.reference']}" sortBy="#{c.reference}" style="width:9rem">
+                    <strong>#{c.reference}</strong>
+                </p:column>
+                <p:column headerText="#{msg['commande.f.date']}" sortBy="#{c.dateCommande}" style="width:9rem">
+                    <h:outputText value="#{c.dateCommande}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
+                </p:column>
+                <p:column headerText="#{msg['commande.f.service']}">
+                    <span style="color:var(--gs-text-soft)">#{c.categorieLibelle} › </span>#{c.serviceLibelle}
+                </p:column>
+                <p:column headerText="#{msg['commande.f.client']}">#{c.clientNom}</p:column>
+                <p:column headerText="#{msg['commande.f.articles']}" style="width:6rem">#{c.nombreArticles}</p:column>
+                <p:column headerText="#{msg['commande.f.total']}" style="width:9rem">
+                    <h:outputText value="#{c.montantTotal}"><f:convertNumber type="number" maxFractionDigits="0"/></h:outputText> XOF
+                </p:column>
+                <p:column headerText="#{msg['commande.f.statut']}" style="width:9rem">
+                    <p:tag value="#{msg['commande.statut.'.concat(c.statut)]}"
+                           severity="#{c.statut eq 'LIVREE' ? 'success' : (c.statut eq 'ANNULEE' ? 'danger' : (c.statut eq 'NOUVELLE' ? 'warning' : 'info'))}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:9rem" exportable="false">
+                    <p:commandButton icon="pi pi-eye" title="#{msg['commande.detail']}" process="@this"
+                                     action="#{commandeBean.voir(c)}" update=":frmCmd:dlgCmd"
+                                     oncomplete="PF('dlgCmd').show()" styleClass="ui-button-flat"/>
+                </p:column>
+            </p:dataTable>
+
+            <p:dialog id="dlgCmd" widgetVar="dlgCmd" modal="true" resizable="false" width="640" responsive="true"
+                      header="#{msg['commande.detail']} — #{commandeBean.selection.reference}">
+                <p:messages showDetail="true" closable="true"/>
+                <ui:fragment rendered="#{not empty commandeBean.selection.id}">
+                    <div class="gs-form-grid">
+                        <div class="gs-field-v"><label>#{msg['commande.f.service']}</label>
+                            <span>#{commandeBean.selection.serviceLibelle}</span></div>
+                        <div class="gs-field-v"><label>#{msg['commande.f.client']}</label>
+                            <span>#{commandeBean.selection.clientNom}</span></div>
+                        <div class="gs-field-v"><label>#{msg['commande.f.livraison']}</label>
+                            <span>#{empty commandeBean.selection.adresseLivraison ? '—' : commandeBean.selection.adresseLivraison}</span></div>
+                        <div class="gs-field-v"><label>#{msg['commande.f.contact']}</label>
+                            <span>#{empty commandeBean.selection.telephoneContact ? '—' : commandeBean.selection.telephoneContact}</span></div>
+                        <ui:fragment rendered="#{not empty commandeBean.selection.commentaire}">
+                            <div class="gs-field-v gs-col-2">
+                                <label>#{msg['geo.f.description']}</label>
+                                <span>#{commandeBean.selection.commentaire}</span>
+                            </div>
+                        </ui:fragment>
+                    </div>
+
+                    <p:dataTable value="#{commandeBean.selection.lignes}" var="l" styleClass="gs-card" style="margin-top:12px">
+                        <p:column headerText="#{msg['cat.f.reference']}">#{l.articleReference}</p:column>
+                        <p:column headerText="#{msg['geo.f.description']}">#{l.articleDescription}</p:column>
+                        <p:column headerText="#{msg['commande.f.qte']}" style="width:5rem">#{l.quantite}</p:column>
+                        <p:column headerText="#{msg['cat.f.prix']}" style="width:8rem">
+                            <h:outputText value="#{l.prixUnitaire}"><f:convertNumber maxFractionDigits="0"/></h:outputText>
+                        </p:column>
+                        <p:column headerText="#{msg['commande.f.sousTotal']}" style="width:8rem">
+                            <h:outputText value="#{l.sousTotal}"><f:convertNumber maxFractionDigits="0"/></h:outputText>
+                        </p:column>
+                    </p:dataTable>
+                    <p style="text-align:right;margin:10px 0 0">
+                        <strong>#{msg['commande.f.total']} :
+                            <h:outputText value="#{commandeBean.selection.montantTotal}"><f:convertNumber maxFractionDigits="0"/></h:outputText> XOF</strong>
+                    </p>
+                </ui:fragment>
+
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.fermer']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgCmd').hide()"/>
+                    <ui:repeat value="#{commandeBean.getTransitions(commandeBean.selection)}" var="t">
+                        <p:commandButton value="#{msg['commande.statut.'.concat(t)]}"
+                                         icon="#{t eq 'ANNULEE' ? 'pi pi-times' : 'pi pi-arrow-right'}"
+                                         styleClass="#{t eq 'ANNULEE' ? 'ui-button-flat' : ''}"
+                                         rendered="#{utilisateurCourant.autorise(perms.COMMANDE_TRAITER)}"
+                                         action="#{commandeBean.avancerSelection(t)}" process="@this"
+                                         update=":frmCmd:tbl :frmCmd:dlgCmd :growl"
+                                         oncomplete="if (args &amp;&amp; args.ok) PF('dlgCmd').hide()"/>
+                    </ui:repeat>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

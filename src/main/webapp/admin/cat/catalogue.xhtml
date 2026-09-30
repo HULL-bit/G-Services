@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['cat.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['cat.intro']}</p>
+
+        <p:tabView id="catTabs" dynamic="true" cache="true" styleClass="gs-sec-tabs">
+            <p:tab title="#{msg['cat.tab.categories']}" titleStyleClass="pi pi-sitemap"
+                   rendered="#{not catalogueBean.vueRestreinte}">
+                <h3 class="gs-tab-h">#{msg['cat.categories']}</h3>
+                <ui:include src="/admin/cat/_categories.xhtml"/>
+            </p:tab>
+            <p:tab title="#{msg['cat.tab.arborescence']}" titleStyleClass="pi pi-sitemap">
+                <h3 class="gs-tab-h">#{msg['cat.arborescence']}</h3>
+                <p class="gs-page__intro" style="margin-top:0">#{msg['cat.arborescence.aide']}</p>
+                <ui:include src="/admin/cat/_services.xhtml"/>
+            </p:tab>
+            <p:tab title="#{msg['cat.tab.offre']}" titleStyleClass="pi pi-box">
+                <h3 class="gs-tab-h">#{msg['cat.tab.offre']}</h3>
+                <p:fieldset legend="#{msg['cat.catalogues']}" toggleable="true" styleClass="gs-sec-group">
+                    <ui:include src="/admin/cat/_catalogues.xhtml"/>
+                </p:fieldset>
+                <p:fieldset legend="#{msg['cat.offres']}" toggleable="true" styleClass="gs-sec-group">
+                    <p class="gs-page__intro" style="margin-top:0">#{msg['cat.offres.aide']}</p>
+                    <ui:include src="/admin/cat/_produits.xhtml"/>
+                </p:fieldset>
+            </p:tab>
+            <p:tab title="#{msg['cat.tab.referentiel']}" titleStyleClass="pi pi-list">
+                <h3 class="gs-tab-h">#{msg['cat.tab.referentiel']}</h3>
+                <p:fieldset legend="#{msg['cat.proprietes']}" toggleable="true" styleClass="gs-sec-group">
+                    <ui:include src="/admin/cat/_proprietes.xhtml"/>
+                </p:fieldset>
+                <p:fieldset legend="#{msg['cat.unites']}" toggleable="true" collapsed="true" styleClass="gs-sec-group">
+                    <ui:include src="/admin/cat/_unites.xhtml"/>
+                </p:fieldset>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+</ui:composition>

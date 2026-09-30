@@ -1,0 +1,218 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmPre">
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{stockBean.filtrePrestataire}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":stkTabs:frmPre:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['stock.prestataire.nouveau']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.STOCK_CREER)}"
+                             action="#{stockBean.nouveauPrestataire}" update=":stkTabs:frmPre:dlgPre"
+                             oncomplete="PF('dlgPre').show(); setTimeout(function(){ gsMapPicker('preMap', 0, 0); }, 250)"/>
+            <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                             rendered="#{utilisateurCourant.autorise(perms.STOCK_EXPORTER)}">
+                <p:dataExporter type="csv" target="tbl" fileName="prestataires"/>
+            </p:commandButton>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{stockBean.prestataires}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['cat.f.service']}" sortBy="#{row.serviceLibelle}">
+                <span style="color:var(--gs-text-soft)">#{row.categorieLibelle} › </span>#{row.serviceLibelle}
+            </p:column>
+            <p:column headerText="#{msg['geo.f.libelle']}" style="width:9rem">#{row.positionLibelle}</p:column>
+            <p:column headerText="#{msg['stock.f.contact']}">
+                <div>#{row.telephone1}</div>
+                <div class="gs-hint">#{row.email1}</div>
+            </p:column>
+            <p:column headerText="#{msg['stock.f.dispo']}" style="width:7rem">
+                <p:tag value="#{row.disponibilite ? msg['common.oui'] : msg['common.non']}"
+                       severity="#{row.disponibilite ? 'success' : 'warning'}"/>
+            </p:column>
+            <p:column headerText="#{msg['stock.f.horaires']}" style="width:7rem">#{row.nbHoraires}</p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:7rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:11rem" exportable="false">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-clock" title="#{msg['stock.gererHoraires']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.STOCK_MODIFIER)}"
+                                     action="#{stockBean.gererHoraires(row)}" update=":stkTabs:frmPre:dlgHor"
+                                     oncomplete="PF('dlgHor').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.STOCK_MODIFIER)}"
+                                     action="#{stockBean.editerPrestataire(row)}" update=":stkTabs:frmPre:dlgPre"
+                                     oncomplete="PF('dlgPre').show(); setTimeout(function(){ gsMapPicker('preMap', #{empty row.latitude ? 0 : row.latitude}, #{empty row.longitude ? 0 : row.longitude}); }, 250)"
+                                     styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.STOCK_SUPPRIMER)}"
+                                     action="#{stockBean.basculerPrestataire(row)}"
+                                     update=":stkTabs:frmPre:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <p:dialog id="dlgPre" widgetVar="dlgPre" modal="true" resizable="false" width="680" responsive="true"
+                  header="#{empty stockBean.prestataire.id ? msg['stock.prestataire.nouveau'] : msg['stock.prestataire.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <h:panelGroup layout="block" styleClass="gs-map-wrap">
+            <div class="gs-form-grid">
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['cat.f.service']}</label>
+                    <p:selectOneMenu value="#{stockBean.prestataire.serviceId}" required="true"
+                                     disabled="#{not empty stockBean.prestataire.id}"
+                                     filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{stockBean.servicesSansFiche}" var="s"
+                                       itemLabel="#{s.categorieServiceLibelle} › #{s.libelle}" itemValue="#{s.id}"/>
+                    </p:selectOneMenu>
+                    <small class="gs-hint" rendered="#{not empty stockBean.prestataire.id}">#{stockBean.prestataire.serviceLibelle}</small>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['stock.f.localisation']}</label>
+                    <div id="preMap" style="height:280px;border-radius:12px;overflow:hidden"></div>
+                    <small class="gs-hint">#{msg['geo.position.aide']}</small>
+                </div>
+                <div class="gs-field-v js-lat">
+                    <label>Latitude</label>
+                    <h:inputText value="#{stockBean.prestataire.latitude}" styleClass="ui-inputfield ui-inputtext ui-widget"/>
+                </div>
+                <div class="gs-field-v js-lng">
+                    <label>Longitude</label>
+                    <h:inputText value="#{stockBean.prestataire.longitude}" styleClass="ui-inputfield ui-inputtext ui-widget"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['stock.f.adresse']}</label>
+                    <p:inputText value="#{stockBean.prestataire.adresse}" maxlength="255"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['stock.f.tel1']}</label>
+                    <p:inputText value="#{stockBean.prestataire.telephone1}" maxlength="30"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['stock.f.tel2']}</label>
+                    <p:inputText value="#{stockBean.prestataire.telephone2}" maxlength="30"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['stock.f.email1']}</label>
+                    <p:inputText value="#{stockBean.prestataire.email1}" maxlength="120"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['stock.f.email2']}</label>
+                    <p:inputText value="#{stockBean.prestataire.email2}" maxlength="120"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['stock.f.siteWeb']}</label>
+                    <p:inputText value="#{stockBean.prestataire.siteWeb}" maxlength="160" placeholder="https://"/>
+                </div>
+                <div class="gs-field-v">
+                    <p:selectBooleanCheckbox value="#{stockBean.prestataire.disponibilite}" itemLabel="#{msg['stock.f.dispo']}"/>
+                </div>
+            </div>
+            </h:panelGroup>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgPre').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{stockBean.enregistrerPrestataire}" process=":stkTabs:frmPre:dlgPre"
+                                 update=":stkTabs:frmPre:tbl :stkTabs:frmPre:dlgPre :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgPre').hide()"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- ================== Dialogue Horaires ================== -->
+        <p:dialog id="dlgHor" widgetVar="dlgHor" modal="true" resizable="false" width="720" responsive="true"
+                  header="#{msg['stock.horaires.titre']} — #{stockBean.prestataireHoraires.serviceLibelle}">
+            <p:messages showDetail="true" closable="true"/>
+
+            <p:dataTable var="h" value="#{stockBean.horaires}" styleClass="gs-card"
+                         emptyMessage="#{msg['stock.horaires.vides']}">
+                <p:column headerText="#{msg['temps.tab.jours']}" style="width:8rem">#{h.jourLibelle}</p:column>
+                <p:column headerText="#{msg['stock.f.ouverture']}">
+                    <h:outputText value="24h/24" rendered="#{h.ouvert24h}"/>
+                    <h:outputText value="#{h.heureOuverture} – #{h.heureFermeture}" rendered="#{not h.ouvert24h}"/>
+                </p:column>
+                <p:column headerText="#{msg['stock.f.pause']}">
+                    <h:outputText value="#{h.pauseDejeunerDebut} – #{h.pauseDejeunerFin}"
+                                  rendered="#{not empty h.pauseDejeunerDebut}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.etat']}" style="width:7rem">
+                    <p:tag value="#{h.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{h.etat ? 'success' : 'danger'}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:7rem">
+                    <p:commandButton icon="pi pi-pencil" styleClass="ui-button-flat" process="@this"
+                                     action="#{stockBean.editerHoraire(h)}" update=":stkTabs:frmPre:horForm"/>
+                    <p:commandButton icon="#{h.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                     process="@this" action="#{stockBean.basculerHoraire(h)}"
+                                     update=":stkTabs:frmPre:dlgHor :stkTabs:frmPre:tbl :growl"/>
+                </p:column>
+            </p:dataTable>
+
+            <h:panelGroup id="horForm" layout="block" style="margin-top:16px">
+                <h4 style="margin:0 0 10px">#{empty stockBean.horaire.id ? msg['stock.horaire.nouveau'] : msg['stock.horaire.edition']}</h4>
+                <div class="gs-form-grid">
+                    <div class="gs-field-v">
+                        <label>#{msg['temps.tab.jours']}</label>
+                        <p:selectOneMenu value="#{stockBean.horaire.jourId}" required="true">
+                            <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                            <f:selectItems value="#{stockBean.jours}" var="j" itemLabel="#{j.libelle}" itemValue="#{j.id}"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="gs-field-v">
+                        <p:selectBooleanCheckbox value="#{stockBean.horaire.ouvert24h}" itemLabel="#{msg['stock.f.ouvert24h']}">
+                            <p:ajax update=":stkTabs:frmPre:horForm"/>
+                        </p:selectBooleanCheckbox>
+                    </div>
+                    <ui:fragment rendered="#{not stockBean.horaire.ouvert24h}">
+                        <div class="gs-field-v">
+                            <label>#{msg['stock.f.ouverture']}</label>
+                            <p:inputMask value="#{stockBean.horaire.heureOuverture}" mask="99:99" placeholder="08:00"/>
+                        </div>
+                    </ui:fragment>
+                    <ui:fragment rendered="#{not stockBean.horaire.ouvert24h}">
+                        <div class="gs-field-v">
+                            <label>#{msg['stock.f.fermeture']}</label>
+                            <p:inputMask value="#{stockBean.horaire.heureFermeture}" mask="99:99" placeholder="18:00"/>
+                        </div>
+                    </ui:fragment>
+                    <ui:fragment rendered="#{not stockBean.horaire.ouvert24h}">
+                        <div class="gs-field-v">
+                            <label>#{msg['stock.f.pauseDebut']}</label>
+                            <p:inputMask value="#{stockBean.horaire.pauseDejeunerDebut}" mask="99:99" placeholder="12:30"/>
+                        </div>
+                    </ui:fragment>
+                    <ui:fragment rendered="#{not stockBean.horaire.ouvert24h}">
+                        <div class="gs-field-v">
+                            <label>#{msg['stock.f.pauseFin']}</label>
+                            <p:inputMask value="#{stockBean.horaire.pauseDejeunerFin}" mask="99:99" placeholder="13:30"/>
+                        </div>
+                    </ui:fragment>
+                </div>
+                <div style="margin-top:12px;text-align:right">
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{stockBean.enregistrerHoraire}" process=":stkTabs:frmPre:horForm"
+                                     update=":stkTabs:frmPre:dlgHor :stkTabs:frmPre:tbl :growl"/>
+                </div>
+            </h:panelGroup>
+
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.fermer']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgHor').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

@@ -1,0 +1,101 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmReg">
+
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{geographieBean.filtreRegion}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":geoTabs:frmReg:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.GEO_CREER)}"
+                             action="#{geographieBean.nouvelleRegion}" update=":geoTabs:frmReg:dlgRegion"
+                             oncomplete="PF('dlgRegion').show()"/>
+            <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                             rendered="#{utilisateurCourant.autorise(perms.GEO_EXPORTER)}">
+                <p:dataExporter type="csv" target="tbl" fileName="regions"/>
+            </p:commandButton>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{geographieBean.regions}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['geo.f.libelle']}" sortBy="#{row.libelle}">#{row.libelle}</p:column>
+            <p:column headerText="#{msg['geo.f.code']}" style="width:7rem">#{row.codeRegion}</p:column>
+            <p:column headerText="#{msg['geo.f.chefLieu']}">#{row.chefLieu}</p:column>
+            <p:column headerText="#{msg['geo.f.pays']}">#{row.paysLibelle}</p:column>
+            <p:column headerText="#{msg['geo.f.villes']}" style="width:6rem">#{row.nbVilles}</p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:8rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:8rem" exportable="false">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.GEO_MODIFIER)}"
+                                     action="#{geographieBean.editerRegion(row)}" update=":geoTabs:frmReg:dlgRegion"
+                                     oncomplete="PF('dlgRegion').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     title="#{row.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                     rendered="#{utilisateurCourant.autorise(perms.GEO_SUPPRIMER)}"
+                                     action="#{geographieBean.basculerRegion(row)}"
+                                     update=":geoTabs:frmReg:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <p:dialog id="dlgRegion" widgetVar="dlgRegion" modal="true" resizable="false" width="600" responsive="true"
+                  header="#{empty geographieBean.region.id ? msg['geo.region.nouveau'] : msg['geo.region.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <div class="gs-form-grid">
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.pays']}</label>
+                    <p:selectOneMenu value="#{geographieBean.region.paysId}" required="true"
+                                     filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{geographieBean.refPays}" var="p"
+                                       itemLabel="#{p.libelle}" itemValue="#{p.id}"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.libelle']}</label>
+                    <p:inputText value="#{geographieBean.region.libelle}" required="true" maxlength="100"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.code']}</label>
+                    <p:inputText value="#{geographieBean.region.codeRegion}" maxlength="20"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.chefLieu']}</label>
+                    <p:inputText value="#{geographieBean.region.chefLieu}" maxlength="100"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.superficie']} (km²)</label>
+                    <p:inputNumber value="#{geographieBean.region.superficieKm2}" decimalPlaces="0" minValue="0"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.population']}</label>
+                    <p:inputNumber value="#{geographieBean.region.population}" decimalPlaces="0" minValue="0"/>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgRegion').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{geographieBean.enregistrerRegion}" process=":geoTabs:frmReg:dlgRegion"
+                                 update=":geoTabs:frmReg:tbl :geoTabs:frmReg:dlgRegion :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgRegion').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

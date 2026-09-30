@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['geo.title']}</ui:define>
+
+    <ui:define name="head">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+        <script src="#{resource['js/geo.js']}"></script>
+    </ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['geo.intro']}</p>
+
+        <p:tabView id="geoTabs" dynamic="true" cache="true" styleClass="gs-sec-tabs">
+
+            <p:tab title="#{msg['geo.tab.continents']}" titleStyleClass="pi pi-globe">
+                <h3 class="gs-tab-h">#{msg['geo.continents']}</h3>
+                <ui:include src="/admin/geo/_continents.xhtml"/>
+            </p:tab>
+
+            <p:tab title="#{msg['geo.tab.zones']}" titleStyleClass="pi pi-th-large">
+                <h3 class="gs-tab-h">#{msg['geo.zones']}</h3>
+                <ui:include src="/admin/geo/_zones.xhtml"/>
+            </p:tab>
+
+            <p:tab title="#{msg['geo.tab.pays']}" titleStyleClass="pi pi-flag">
+                <h3 class="gs-tab-h">#{msg['geo.pays']}</h3>
+                <ui:include src="/admin/geo/_pays.xhtml"/>
+            </p:tab>
+
+            <p:tab title="#{msg['geo.tab.regions']}" titleStyleClass="pi pi-map">
+                <h3 class="gs-tab-h">#{msg['geo.regions']}</h3>
+                <ui:include src="/admin/geo/_regions.xhtml"/>
+            </p:tab>
+
+            <p:tab title="#{msg['geo.tab.villes']}" titleStyleClass="pi pi-building">
+                <h3 class="gs-tab-h">#{msg['geo.villes']}</h3>
+                <ui:include src="/admin/geo/_villes.xhtml"/>
+            </p:tab>
+
+            <p:tab title="#{msg['geo.tab.carte']}" titleStyleClass="pi pi-map-marker">
+                <h3 class="gs-tab-h">#{msg['geo.carte']}</h3>
+                <ui:include src="/admin/geo/_carte.xhtml"/>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+</ui:composition>

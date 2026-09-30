@@ -1,0 +1,139 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmSrv">
+        <div class="gs-page__head">
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['cat.service.nouveauRacine']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_CREER)}"
+                             action="#{catalogueBean.nouveauService}" update=":catTabs:frmSrv:dlgSrv"
+                             oncomplete="PF('dlgSrv').show()"/>
+        </div>
+
+        <p:treeTable id="arbre" value="#{catalogueBean.arbreServices}" var="s" styleClass="gs-card"
+                     emptyMessage="#{msg['common.aucuneDonnee']}">
+            <p:column headerText="#{msg['cat.f.serviceArbre']}" style="min-width:18rem">
+                <span class="#{s.id lt 0 ? 'gs-tree-cat' : ''}">
+                    <i class="#{s.id lt 0 ? 'pi pi-folder' : 'pi pi-briefcase'}" style="margin-right:6px"></i>#{s.libelle}
+                </span>
+            </p:column>
+            <p:column headerText="#{msg['cat.f.prixIndicatif']}" style="width:9rem">
+                <h:outputText value="#{s.prixIndicatif}" rendered="#{s.id gt 0 and not empty s.prixIndicatif}">
+                    <f:convertNumber type="number" maxFractionDigits="0"/>
+                </h:outputText>
+            </p:column>
+            <p:column headerText="#{msg['cat.f.catalogues']}" style="width:6rem">
+                <h:outputText value="#{s.nbCatalogues}" rendered="#{s.id gt 0}"/>
+            </p:column>
+            <p:column headerText="#{msg['cat.f.proprietaire']}" style="width:12rem">
+                <ui:fragment rendered="#{s.id gt 0 and not empty s.proprietaireNom}">
+                    <i class="pi pi-user" style="margin-right:5px;color:var(--gs-text-soft)"></i>#{s.proprietaireNom}
+                </ui:fragment>
+                <ui:fragment rendered="#{s.id gt 0 and empty s.proprietaireNom}">
+                    <span class="gs-hint">#{msg['cat.f.aucunProprietaire']}</span>
+                </ui:fragment>
+            </p:column>
+            <p:column headerText="#{msg['common.etat']}" style="width:7rem">
+                <p:tag value="#{s.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{s.etat ? 'success' : 'danger'}" rendered="#{s.id gt 0}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:11rem">
+                <span class="gs-actions" style="justify-content:flex-start">
+                    <p:commandButton icon="pi pi-plus" title="#{msg['cat.service.ajouterSous']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_CREER) and s.id gt 0}"
+                                     action="#{catalogueBean.nouveauSousService(s)}" update=":catTabs:frmSrv:dlgSrv"
+                                     oncomplete="PF('dlgSrv').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="pi pi-plus" title="#{msg['cat.service.nouveauRacine']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_CREER) and s.id lt 0}"
+                                     action="#{catalogueBean.nouveauServiceRacine(s.categorieServiceId)}"
+                                     update=":catTabs:frmSrv:dlgSrv" oncomplete="PF('dlgSrv').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_MODIFIER) and s.id gt 0}"
+                                     action="#{catalogueBean.editerService(s)}" update=":catTabs:frmSrv:dlgSrv"
+                                     oncomplete="PF('dlgSrv').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{s.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_SUPPRIMER) and s.id gt 0}"
+                                     action="#{catalogueBean.basculerService(s)}"
+                                     update=":catTabs:frmSrv:arbre :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:treeTable>
+
+        <p:dialog id="dlgSrv" widgetVar="dlgSrv" modal="true" resizable="false" width="620" responsive="true"
+                  header="#{empty catalogueBean.unService.id ? msg['cat.service.nouveau'] : msg['cat.service.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <div class="gs-form-grid">
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.categorie']}</label>
+                    <p:selectOneMenu value="#{catalogueBean.unService.categorieServiceId}" required="true"
+                                     filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{catalogueBean.refCategories}" var="c"
+                                       itemLabel="#{c.libelle}" itemValue="#{c.id}"/>
+                        <p:ajax listener="#{catalogueBean.onCategorieServiceChoisie}"
+                                update=":catTabs:frmSrv:selProprio"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.parent']}</label>
+                    <p:selectOneMenu value="#{catalogueBean.unService.parentId}" filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="#{msg['cat.f.aucunParent']}" itemValue="#{null}"/>
+                        <f:selectItems value="#{catalogueBean.refServices}" var="s"
+                                       itemLabel="#{s.libelle}" itemValue="#{s.id}"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.libelle']}</label>
+                    <p:inputText value="#{catalogueBean.unService.libelle}" required="true" maxlength="120"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.prixIndicatif']}</label>
+                    <p:inputNumber value="#{catalogueBean.unService.prixIndicatif}" decimalPlaces="0" minValue="0"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <p:selectBooleanCheckbox value="#{catalogueBean.unService.commandeADistance}"
+                                             itemLabel="#{msg['cat.f.commandeADistance']}"/>
+                    <small class="gs-hint">#{msg['cat.f.commandeADistanceAide']}</small>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['cat.f.proprietaire']}</label>
+                    <p:selectOneMenu id="selProprio" value="#{catalogueBean.unService.proprietaireId}"
+                                     filter="true" filterMatchMode="contains"
+                                     disabled="#{empty catalogueBean.unService.categorieServiceId}">
+                        <f:selectItem itemLabel="#{msg['cat.f.aucunProprietaire']}" itemValue="#{null}"/>
+                        <f:selectItems value="#{catalogueBean.refFournisseurs}" var="f"
+                                       itemLabel="#{f.prenom} #{f.nom} (#{f.login})#{f.disponible ? '' : ' — '.concat(msg['cat.f.dejaAffecte'])}"
+                                       itemValue="#{f.id}"/>
+                    </p:selectOneMenu>
+                    <small class="gs-hint">
+                        <h:outputText value="#{msg['cat.f.proprietaireCategorieDabord']}"
+                                      rendered="#{empty catalogueBean.unService.categorieServiceId}"/>
+                        <h:outputText value="#{msg['cat.f.proprietaireAide']}"
+                                      rendered="#{not empty catalogueBean.unService.categorieServiceId}"/>
+                    </small>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.image']}</label>
+                    <p:inputText value="#{catalogueBean.unService.image}" maxlength="160" placeholder="media/…"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.description']}</label>
+                    <p:inputTextarea value="#{catalogueBean.unService.description}" rows="3" maxlength="500" autoResize="false"/>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgSrv').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{catalogueBean.enregistrerService}" process=":catTabs:frmSrv:dlgSrv"
+                                 update=":catTabs:frmSrv:arbre :catTabs:frmSrv:dlgSrv :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgSrv').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

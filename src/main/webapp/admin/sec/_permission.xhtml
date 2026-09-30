@@ -1,0 +1,113 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmPM">
+
+            <div class="gs-page__head">
+                <span class="ui-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <p:inputText value="#{permissionBean.filtre}" placeholder="#{msg['action.rechercher']}">
+                        <p:ajax event="keyup" update=":secTabs:frmPM:tbl" delay="350"/>
+                    </p:inputText>
+                </span>
+                <span class="gs-spacer"></span>
+                <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                                 rendered="#{utilisateurCourant.autorise(perms.PERMISSION_CREER)}"
+                                 action="#{permissionBean.preparerCreation}" update=":secTabs:frmPM:dlgPermission"
+                                 oncomplete="PF('dlgPermission').show()"/>
+                <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                                 rendered="#{utilisateurCourant.autorise(perms.PERMISSION_EXPORTER)}">
+                    <p:dataExporter type="csv" target="tbl" fileName="permissions"/>
+                </p:commandButton>
+            </div>
+
+            <p:dataTable id="tbl" widgetVar="tblPM" var="row" value="#{permissionBean.model}" lazy="true"
+                         paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                         paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+                <p:column headerText="#{msg['permission.code']}" sortBy="#{row.code}">#{row.code}</p:column>
+                <p:column headerText="#{msg['permission.libelle']}" sortBy="#{row.libelle}">#{row.libelle}</p:column>
+                <p:column headerText="#{msg['permission.action']}" sortBy="#{row.actionAutorisee}">#{row.actionAutorisee}</p:column>
+                <p:column headerText="#{msg['permission.branche']}">#{row.brancheLibelle}</p:column>
+                <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:9rem">
+                    <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{row.etat ? 'success' : 'danger'}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:8rem" exportable="false">
+                    <span class="gs-actions">
+                        <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.PERMISSION_MODIFIER)}"
+                                         action="#{permissionBean.preparerEdition(row)}" update=":secTabs:frmPM:dlgPermission"
+                                         oncomplete="PF('dlgPermission').show()" styleClass="ui-button-flat"/>
+                        <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                         title="#{row.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                         rendered="#{utilisateurCourant.autorise(perms.PERMISSION_SUPPRIMER)}"
+                                         action="#{permissionBean.basculerEtat(row)}" update=":secTabs:frmPM:tbl :growl"
+                                         styleClass="ui-button-flat">
+                            <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                       icon="pi pi-exclamation-triangle"/>
+                        </p:commandButton>
+                    </span>
+                </p:column>
+            </p:dataTable>
+        
+
+        
+            <p:dialog id="dlgPermission" widgetVar="dlgPermission" modal="true" resizable="false" width="620" responsive="true"
+                      header="#{empty permissionBean.selection.id ? msg['permission.dialogNouveau'] : msg['permission.dialogEdition']}">
+                <p:messages showDetail="true" closable="true"/>
+                <div class="gs-form-grid">
+                    <div class="gs-field-v">
+                        <label>#{msg['permission.branche']}</label>
+                        <p:selectOneMenu value="#{permissionBean.selection.brancheId}" required="true"
+                                         disabled="#{not empty permissionBean.selection.id}"
+                                         filter="true" filterMatchMode="contains">
+                            <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                            <f:selectItems value="#{permissionBean.branches}" var="b"
+                                           itemLabel="#{b.code} — #{b.libelle}" itemValue="#{b.id}"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['permission.code']} <small class="gs-hint">(#{msg['common.auto']})</small></label>
+                        <p:inputText value="#{permissionBean.selection.code}" disabled="true"
+                                     placeholder="#{msg['common.auto']}"/>
+                    </div>
+                    <div class="gs-field-v gs-col-2">
+                        <label>#{msg['permission.libelle']}</label>
+                        <p:inputText value="#{permissionBean.selection.libelle}" required="true" maxlength="120"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['permission.action']}</label>
+                        <p:selectOneMenu value="#{permissionBean.selection.actionAutorisee}">
+                            <f:selectItem itemLabel="LIRE" itemValue="LIRE"/>
+                            <f:selectItem itemLabel="CREER" itemValue="CREER"/>
+                            <f:selectItem itemLabel="MODIFIER" itemValue="MODIFIER"/>
+                            <f:selectItem itemLabel="SUPPRIMER" itemValue="SUPPRIMER"/>
+                            <f:selectItem itemLabel="EXPORTER" itemValue="EXPORTER"/>
+                            <f:selectItem itemLabel="ADMINISTRER" itemValue="ADMINISTRER"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['permission.niveau']}</label>
+                        <p:spinner value="#{permissionBean.selection.niveau}" min="0" stepFactor="1" size="5"/>
+                    </div>
+                    <div class="gs-field-v gs-col-2">
+                        <label>#{msg['permission.reference']}</label>
+                        <p:inputText value="#{permissionBean.selection.reference}" maxlength="150"
+                                     placeholder="/admin/…/xxx.xhtml"/>
+                    </div>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgPermission').hide()"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{permissionBean.enregistrer}"
+                                     update=":secTabs:frmPM:tbl :secTabs:frmPM:dlgPermission :growl"
+                                     oncomplete="if (args &amp;&amp; args.ok) PF('dlgPermission').hide()" process=":secTabs:frmPM:dlgPermission"/>
+                </f:facet>
+            </p:dialog>
+        
+    </h:form>
+</ui:composition>

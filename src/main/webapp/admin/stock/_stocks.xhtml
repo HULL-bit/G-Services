@@ -1,0 +1,209 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmStk">
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{stockBean.filtreStock}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":stkTabs:frmStk:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <p:selectOneMenu value="#{stockBean.filtreFournisseurStock}" style="min-width:14rem"
+                             filter="true" filterMatchMode="contains">
+                <f:selectItem itemLabel="#{msg['stock.f.tousFournisseurs']}" itemValue="#{null}"/>
+                <f:selectItems value="#{stockBean.refFournisseursStock}" var="f"
+                               itemLabel="#{f.prenom} #{f.nom} (#{f.login})" itemValue="#{f.id}"/>
+                <p:ajax update=":stkTabs:frmStk:tbl"/>
+            </p:selectOneMenu>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['stock.ouvrir']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.STOCK_CREER)}"
+                             action="#{stockBean.nouveauStock}" update=":stkTabs:frmStk:dlgStk"
+                             oncomplete="PF('dlgStk').show()"/>
+            <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                             rendered="#{utilisateurCourant.autorise(perms.STOCK_EXPORTER)}">
+                <p:dataExporter type="csv" target="tbl" fileName="stocks"/>
+            </p:commandButton>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{stockBean.stocks}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card"
+                     rowStyleClass="#{row.enAlerte ? 'gs-row-alerte' : null}">
+            <p:column headerText="#{msg['cat.f.reference']}" sortBy="#{row.articleReference}" style="width:8rem;white-space:nowrap">#{row.articleReference}</p:column>
+            <p:column headerText="#{msg['cat.f.produit']}" style="min-width:8rem">#{row.produitLibelle}</p:column>
+            <p:column headerText="#{msg['stock.f.service']}" style="min-width:13rem">
+                <div>#{row.serviceLibelle}</div>
+                <small class="gs-hint">
+                    #{row.categorieLibelle}<h:outputText value=" · #{row.proprietaireNom}" rendered="#{not empty row.proprietaireNom}"/>
+                </small>
+            </p:column>
+            <p:column headerText="#{msg['stock.f.disponible']}" style="width:7rem">
+                <strong>#{row.quantiteDisponible}</strong>
+            </p:column>
+            <p:column headerText="#{msg['stock.f.seuil']}" style="width:6rem">#{row.seuilAlerte}</p:column>
+            <p:column headerText="#{msg['stock.f.lots']}" style="width:8rem">
+                #{row.nbLots}
+                <p:tag value="#{row.nbLotsPerimes} #{msg['stock.f.perimes']}" severity="warning"
+                       rendered="#{row.nbLotsPerimes gt 0}" style="margin-left:4px"/>
+            </p:column>
+            <p:column headerText="#{msg['stock.f.alerte']}" style="width:8rem">
+                <p:tag value="#{row.enAlerte ? msg['stock.f.enAlerte'] : msg['stock.f.ok']}"
+                       severity="#{row.enAlerte ? 'danger' : 'success'}"
+                       icon="#{row.enAlerte ? 'pi pi-exclamation-triangle' : 'pi pi-check'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:7rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:11rem" exportable="false">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-list" title="#{msg['stock.gererLots']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.STOCK_MODIFIER)}"
+                                     action="#{stockBean.gererLots(row)}" update=":stkTabs:frmStk:dlgLots"
+                                     oncomplete="PF('dlgLots').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.STOCK_MODIFIER)}"
+                                     action="#{stockBean.editerStock(row)}" update=":stkTabs:frmStk:dlgStk"
+                                     oncomplete="PF('dlgStk').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.STOCK_SUPPRIMER)}"
+                                     action="#{stockBean.basculerStock(row)}"
+                                     update=":stkTabs:frmStk:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <p:dialog id="dlgStk" widgetVar="dlgStk" modal="true" resizable="false" width="520" responsive="true"
+                  header="#{empty stockBean.stock.id ? msg['stock.ouvrir'] : msg['stock.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <div class="gs-form-grid">
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['cat.f.article']}</label>
+                    <p:selectOneMenu value="#{stockBean.stock.articleId}" required="true"
+                                     disabled="#{not empty stockBean.stock.id}"
+                                     filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{stockBean.articlesSansStock}" var="a"
+                                       itemLabel="#{a.reference} — #{a.produitLibelle}" itemValue="#{a.id}"/>
+                    </p:selectOneMenu>
+                    <small class="gs-hint" rendered="#{not empty stockBean.stock.id}">#{stockBean.stock.articleReference}</small>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['stock.f.seuil']}</label>
+                    <p:spinner value="#{stockBean.stock.seuilAlerte}" min="0"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['stock.f.disponible']}</label>
+                    <p:inputText value="#{stockBean.stock.quantiteDisponible}" disabled="true"/>
+                    <small class="gs-hint">#{msg['stock.f.disponibleAide']}</small>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgStk').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{stockBean.enregistrerStock}" process=":stkTabs:frmStk:dlgStk"
+                                 update=":stkTabs:frmStk:tbl :stkTabs:frmStk:dlgStk :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgStk').hide()"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- ================== Dialogue Lots (composition du stock) ================== -->
+        <p:dialog id="dlgLots" widgetVar="dlgLots" modal="true" resizable="false" width="880" responsive="true"
+                  header="#{msg['stock.lots.titre']} — #{stockBean.stockLots.articleReference}">
+            <p:messages showDetail="true" closable="true"/>
+            <p class="gs-hint" style="margin:0 0 10px">
+                #{msg['stock.f.disponible']} : <strong>#{stockBean.stockLots.quantiteDisponible}</strong>
+                &#160;·&#160; #{msg['stock.f.seuil']} : #{stockBean.stockLots.seuilAlerte}
+            </p>
+
+            <p:dataTable var="l" value="#{stockBean.lots}" styleClass="gs-card"
+                         emptyMessage="#{msg['stock.lots.vides']}"
+                         rowStyleClass="#{l.perime ? 'gs-row-alerte' : null}">
+                <p:column headerText="#{msg['stock.f.numeroLot']}">#{l.numeroLot}</p:column>
+                <p:column headerText="#{msg['stock.f.quantite']}" style="width:6rem">#{l.quantite}</p:column>
+                <p:column headerText="#{msg['stock.f.recuEn']}">#{l.moisLibelle} #{l.anneeValeur}</p:column>
+                <p:column headerText="#{msg['stock.f.peremption']}">
+                    <h:outputText value="#{l.datePeremption}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
+                    <p:tag value="#{msg['stock.f.perime']}" severity="warning" rendered="#{l.perime}" style="margin-left:6px"/>
+                </p:column>
+                <p:column headerText="#{msg['common.etat']}" style="width:7rem">
+                    <p:tag value="#{l.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{l.etat ? 'success' : 'danger'}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:8rem">
+                    <p:commandButton icon="pi pi-pencil" styleClass="ui-button-flat" process="@this"
+                                     action="#{stockBean.editerLot(l)}" update=":stkTabs:frmStk:lotForm"
+                                     oncomplete="document.getElementById('gs-lotform').scrollIntoView({behavior:'smooth'})"/>
+                    <p:commandButton icon="#{l.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                     process="@this" action="#{stockBean.basculerLot(l)}"
+                                     update=":stkTabs:frmStk:dlgLots :stkTabs:frmStk:tbl :growl"/>
+                </p:column>
+            </p:dataTable>
+
+            <h:panelGroup id="lotForm" layout="block" style="margin-top:16px">
+                <h4 id="gs-lotform" style="margin:0 0 10px">#{empty stockBean.lot.id ? msg['stock.lot.nouveau'] : msg['stock.lot.edition']}</h4>
+                <div class="gs-form-grid">
+                    <div class="gs-field-v">
+                        <label>#{msg['stock.f.numeroLot']}</label>
+                        <p:inputText value="#{stockBean.lot.numeroLot}" required="true" maxlength="60"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['stock.f.quantite']}</label>
+                        <p:spinner value="#{stockBean.lot.quantite}" min="0"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['temps.a.valeur']}</label>
+                        <p:selectOneMenu value="#{stockBean.lotAnneeId}" filter="true">
+                            <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                            <f:selectItems value="#{stockBean.annees}" var="y"
+                                           itemLabel="#{y.valeurAnnee}" itemValue="#{y.id}"/>
+                            <p:ajax listener="#{stockBean.onLotAnnee}" update=":stkTabs:frmStk:selLotMois"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['stock.f.recuEn']}</label>
+                        <p:selectOneMenu id="selLotMois" value="#{stockBean.lot.moisId}" required="true">
+                            <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                            <f:selectItems value="#{stockBean.lotMois}" var="m"
+                                           itemLabel="#{m.libelle}" itemValue="#{m.id}"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['stock.f.prixAchat']}</label>
+                        <p:inputNumber value="#{stockBean.lot.prixAchat}" decimalPlaces="2" minValue="0"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['stock.f.dateEntree']}</label>
+                        <p:datePicker value="#{stockBean.lot.dateEntree}" pattern="dd/MM/yyyy" showIcon="true"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['stock.f.peremption']}</label>
+                        <p:datePicker value="#{stockBean.lot.datePeremption}" pattern="dd/MM/yyyy" showIcon="true"/>
+                    </div>
+                </div>
+                <div style="margin-top:12px;text-align:right">
+                    <p:commandButton value="#{msg['stock.lot.nouveau']}" icon="pi pi-plus" styleClass="ui-button-flat"
+                                     process="@this" action="#{stockBean.preparerLot}"
+                                     update=":stkTabs:frmStk:lotForm"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{stockBean.enregistrerLot}" process=":stkTabs:frmStk:lotForm"
+                                     update=":stkTabs:frmStk:dlgLots :stkTabs:frmStk:tbl :growl"/>
+                </div>
+            </h:panelGroup>
+
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.fermer']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgLots').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<f:view contentType="text/html" encoding="UTF-8">
+<h:head>
+    <title>G-SERVICES</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="icon" type="image/svg+xml" href="#{resource['media/logo/favicon.svg']}"/>
+    <h:outputStylesheet library="css" name="theme.css"/>
+    <style>
+        .gs-error { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: 40px; }
+        .gs-error__box { max-width: 460px; }
+    </style>
+</h:head>
+<h:body styleClass="gs-body">
+    <div class="gs-error">
+        <div class="gs-error__box">
+            <h:graphicImage name="media/logo/gservices-logo.svg" alt="G-SERVICES" style="height:44px;margin-bottom:24px"/>
+            <h1 style="font-size:2rem">Oups…</h1>
+            <p class="gs-lead">Cette page est introuvable ou une erreur est survenue.</p>
+            <p style="margin-top:24px">
+                <h:link outcome="/public/index" styleClass="gs-btn -dark">Retour à l'accueil</h:link>
+            </p>
+        </div>
+    </div>
+</h:body>
+</f:view>
+</html>

@@ -1,0 +1,90 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmProp">
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{catalogueBean.filtrePropriete}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":catTabs:frmProp:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_CREER)}"
+                             action="#{catalogueBean.nouvellePropriete}" update=":catTabs:frmProp:dlgProp"
+                             oncomplete="PF('dlgProp').show()"/>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{catalogueBean.proprietes}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['geo.f.libelle']}" sortBy="#{row.libelle}">#{row.libelle}</p:column>
+            <p:column headerText="#{msg['cat.f.typeSaisie']}" sortBy="#{row.typeSaisie}" style="width:9rem">
+                <p:tag value="#{row.typeSaisie}" severity="info" rendered="#{not empty row.typeSaisie}"/>
+            </p:column>
+            <p:column headerText="#{msg['cat.f.unite']}" style="width:9rem">#{row.uniteMesureLibelle} #{empty row.uniteMesureSymbole ? '' : '('.concat(row.uniteMesureSymbole).concat(')')}</p:column>
+            <p:column headerText="#{msg['geo.f.description']}">#{row.description}</p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:8rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:8rem">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-pencil" process="@this" title="#{msg['action.editer']}"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_MODIFIER)}"
+                                     action="#{catalogueBean.editerPropriete(row)}" update=":catTabs:frmProp:dlgProp"
+                                     oncomplete="PF('dlgProp').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_SUPPRIMER)}"
+                                     action="#{catalogueBean.basculerPropriete(row)}"
+                                     update=":catTabs:frmProp:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <p:dialog id="dlgProp" widgetVar="dlgProp" modal="true" resizable="false" width="560" responsive="true"
+                  header="#{empty catalogueBean.propriete.id ? msg['cat.propriete.nouveau'] : msg['cat.propriete.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <div class="gs-form-grid">
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.libelle']}</label>
+                    <p:inputText value="#{catalogueBean.propriete.libelle}" required="true" maxlength="100"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.typeSaisie']}</label>
+                    <p:selectOneMenu value="#{catalogueBean.propriete.typeSaisie}">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{catalogueBean.typesSaisie}" var="t" itemLabel="#{t}" itemValue="#{t}"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.unite']}</label>
+                    <p:selectOneMenu value="#{catalogueBean.propriete.uniteMesureId}" filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="#{msg['cat.f.sansUnite']}" itemValue="#{null}"/>
+                        <f:selectItems value="#{catalogueBean.refUnites}" var="u"
+                                       itemLabel="#{u.libelle} (#{u.symbole})" itemValue="#{u.id}"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.description']}</label>
+                    <p:inputTextarea value="#{catalogueBean.propriete.description}" rows="2" maxlength="255" autoResize="false"/>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgProp').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{catalogueBean.enregistrerPropriete}" process=":catTabs:frmProp:dlgProp"
+                                 update=":catTabs:frmProp:tbl :catTabs:frmProp:dlgProp :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgProp').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>

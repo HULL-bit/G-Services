@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['comptes.fournisseurs.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['comptes.fournisseurs.intro']}</p>
+
+        <h:form id="frmFrn">
+            <div class="gs-page__head">
+                <span class="ui-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <p:inputText value="#{comptesBean.filtreFournisseur}" placeholder="#{msg['action.rechercher']}">
+                        <p:ajax event="keyup" update="tbl" delay="350"/>
+                    </p:inputText>
+                </span>
+                <span class="gs-spacer"></span>
+                <p:commandButton value="#{msg['comptes.fournisseur.nouveau']}" icon="pi pi-plus" process="@this"
+                                 rendered="#{utilisateurCourant.autorise(perms.FOURNISSEUR_GERER)}"
+                                 update=":frmFrn:dlgFrn" oncomplete="PF('dlgFrn').show()"/>
+            </div>
+
+            <p:dataTable id="tbl" var="cpt" value="#{comptesBean.fournisseurs}" lazy="true"
+                         paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                         emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+                <p:column headerText="#{msg['personne.nom']}" sortBy="#{cpt.nom}">
+                    <strong>#{cpt.prenom} #{cpt.nom}</strong>
+                    <div class="gs-hint">#{cpt.login}<h:outputText value=" · #{cpt.email1}" rendered="#{not empty cpt.email1}"/></div>
+                </p:column>
+                <p:column headerText="#{msg['comptes.f.specialite']}">#{cpt.categorieSpecialiteLibelle}</p:column>
+                <p:column headerText="#{msg['comptes.f.service']}">
+                    <h:outputText value="#{cpt.serviceGereLibelle}" rendered="#{not empty cpt.serviceGereLibelle}"/>
+                    <h:outputText styleClass="gs-hint" value="#{msg['comptes.f.aucunService']}"
+                                  rendered="#{empty cpt.serviceGereLibelle}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.etat']}" style="width:11rem">
+                    <p:tag value="#{msg['comptes.statut.attente']}" severity="warning" icon="pi pi-clock"
+                           rendered="#{not cpt.valide}"/>
+                    <p:tag value="#{cpt.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{cpt.etat ? 'success' : 'danger'}" rendered="#{cpt.valide}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:9rem"
+                          rendered="#{utilisateurCourant.autorise(perms.FOURNISSEUR_GERER)}">
+                    <p:commandButton icon="#{cpt.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                     title="#{cpt.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                     process="@this" action="#{comptesBean.basculerFournisseur(cpt)}"
+                                     update=":frmFrn:tbl :growl">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+
+            <p:dialog id="dlgFrn" widgetVar="dlgFrn" modal="true" resizable="false" width="560" responsive="true"
+                      header="#{msg['comptes.fournisseur.nouveau']}">
+                <p:messages showDetail="true" closable="true"/>
+                <div class="gs-form-grid">
+                    <div class="gs-field-v"><label>#{msg['personne.prenom']}</label>
+                        <p:inputText value="#{comptesBean.nouveauFournisseur.prenom}" required="true" maxlength="80"/></div>
+                    <div class="gs-field-v"><label>#{msg['personne.nom']}</label>
+                        <p:inputText value="#{comptesBean.nouveauFournisseur.nom}" required="true" maxlength="80"/></div>
+                    <div class="gs-field-v"><label>#{msg['personne.login']}</label>
+                        <p:inputText value="#{comptesBean.nouveauFournisseur.login}" required="true" maxlength="60"/></div>
+                    <div class="gs-field-v"><label>#{msg['personne.email']}</label>
+                        <p:inputText value="#{comptesBean.nouveauFournisseur.email}" maxlength="150"/></div>
+                    <div class="gs-field-v"><label>#{msg['personne.telephone1']}</label>
+                        <p:inputText value="#{comptesBean.nouveauFournisseur.telephone}" maxlength="30"/></div>
+                    <div class="gs-field-v"><label>#{msg['comptes.f.motDePasse']}</label>
+                        <p:password value="#{comptesBean.nouveauFournisseur.motDePasse}" required="true" toggleMask="true"/></div>
+                    <div class="gs-field-v gs-col-2"><label>#{msg['comptes.f.specialite']}</label>
+                        <p:selectOneMenu value="#{comptesBean.nouveauFournisseur.categorieSpecialiteId}" required="true"
+                                         filter="true" filterMatchMode="contains">
+                            <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                            <f:selectItems value="#{comptesBean.categories}" var="c"
+                                           itemLabel="#{c.libelle}" itemValue="#{c.id}"/>
+                        </p:selectOneMenu></div>
+                    <div class="gs-field-v gs-col-2"><label>#{msg['comptes.f.serviceLibelle']}</label>
+                        <p:inputText value="#{comptesBean.nouveauFournisseur.serviceLibelle}" maxlength="120"
+                                     placeholder="#{msg['comptes.f.serviceLibelle.aide']}"/></div>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgFrn').hide()"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{comptesBean.creerFournisseur}" process=":frmFrn:dlgFrn"
+                                     update=":frmFrn:dlgFrn :frmFrn:tbl :growl"
+                                     oncomplete="if (args &amp;&amp; args.ok) PF('dlgFrn').hide()"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

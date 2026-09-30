@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['avis.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['avis.intro']}</p>
+
+        <p:tabView id="modTabs" dynamic="true" cache="true" styleClass="gs-sec-tabs">
+
+            <p:tab title="#{msg['signalement.tab.avis']}" titleStyleClass="pi pi-comments">
+                <h3 class="gs-tab-h">#{msg['avis.title']}</h3>
+                <ui:include src="/admin/avis/_avis.xhtml"/>
+            </p:tab>
+
+            <p:tab title="#{msg['signalement.tab.signalements']}" titleStyleClass="pi pi-flag"
+                   rendered="#{utilisateurCourant.autorise(perms.SIGNALEMENT_LIRE)}">
+                <h3 class="gs-tab-h">#{msg['signalement.title']}</h3>
+                <p class="gs-page__intro" style="margin-top:0">#{msg['signalement.intro']}</p>
+                <ui:include src="/admin/avis/_signalements.xhtml"/>
+            </p:tab>
+
+            <p:tab title="#{msg['signalement.tab.bloques']}" titleStyleClass="pi pi-ban"
+                   rendered="#{utilisateurCourant.autorise(perms.SIGNALEMENT_LIRE)}">
+                <h3 class="gs-tab-h">#{msg['signalement.tab.bloques']}</h3>
+                <ui:include src="/admin/avis/_bloques.xhtml"/>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+</ui:composition>

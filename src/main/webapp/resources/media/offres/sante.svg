@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300" role="img"><title>Santé &amp; bien-être</title><rect width="480" height="300" rx="18" fill="#F1F5F9"/><rect width="480" height="300" rx="18" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1F3A5F" stop-opacity=".14"/><stop offset="1" stop-color="#C9A227" stop-opacity=".22"/></linearGradient></defs>
+<path d="M240 236s-96-54-96-118a48 48 0 0 1 96-16 48 48 0 0 1 96 16c0 64-96 118-96 118z" fill="#fff" stroke="#1F3A5F" stroke-width="6" stroke-linejoin="round"/>
+<path d="M204 140h24v-24h24v24h24v24h-24v24h-24v-24h-24z" fill="#C9A227"/>
+</svg>

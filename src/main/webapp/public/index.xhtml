@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/layout.xhtml">
+
+    <ui:define name="title">#{msg['app.name']} — #{msg['app.tagline']}</ui:define>
+
+    <ui:define name="head">
+        <style>
+            /* Fond de section piloté par le mécanisme de ressources JSF (dossier /media) */
+            .gs-discover__bg {
+                background-image: url("#{resource['media/backgrounds/discover-map.jpg']}");
+            }
+            #gsHomeMap { height: 100%; min-height: 420px; border-radius: var(--gs-radius); overflow: hidden; }
+            .gs-split__media.-map { padding: 0; background: var(--gs-surface); box-shadow: var(--gs-shadow); }
+        </style>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+        <script src="#{resource['js/geo.js']}"></script>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <!-- ============================ HERO ============================ -->
+        <section class="gs-hero" id="top">
+            <video class="gs-hero__video" data-bg-video="true" aria-hidden="true" tabindex="-1"
+                   autoplay="autoplay" muted="muted" loop="loop" playsinline="playsinline" preload="auto"
+                   poster="#{resource['media/backgrounds/videos-poster.jpg']}">
+                <source src="#{resource['media/backgrounds/videos.webm']}" type="video/webm"/>
+                <source src="#{resource['media/backgrounds/videos.mp4']}" type="video/mp4"/>
+            </video>
+            <div class="gs-hero__overlay"></div>
+            <div class="gs-hero__glow"></div>
+
+            <div class="gs-container gs-hero__inner">
+                <span class="gs-hero__badge">#{msg['hero.badge']}</span>
+                <h1>
+                    #{msg['hero.title']}<br/>
+                    <span class="gs-hero__rotator" data-typewriter="true"
+                          data-words="#{msg['hero.title.rotating']}">#{msg['hero.title.rotating.first']}</span><span class="gs-hero__caret"></span>
+                </h1>
+                <p class="gs-hero__subtitle">#{msg['hero.subtitle']}</p>
+
+                <div class="gs-hero__actions">
+                    <a class="gs-btn -accent" href="#{request.contextPath}/public/catalogue.xhtml">
+                        <i class="pi pi-compass"></i> #{msg['hero.cta.primary']}
+                    </a>
+                    <a class="gs-btn -ghost" href="#geoloc">
+                        <i class="pi pi-map"></i> #{msg['hero.cta.secondary']}
+                    </a>
+                </div>
+            </div>
+
+            <a class="gs-hero__scroll" href="#discover">#{msg['hero.scroll']}</a>
+            <span class="gs-hero__credit">#{msg['media.hero.credit']}</span>
+        </section>
+
+        <!-- ============================ INDICATEURS ============================ -->
+        <section class="gs-kpis" aria-label="Chiffres clés">
+            <div class="gs-container">
+                <div class="gs-kpis__grid" data-aos="fade-up">
+                    <ui:repeat value="#{homeBean.indicateurs}" var="ind">
+                        <div class="gs-kpi">
+                            <div class="gs-kpi__icon"><i class="#{ind.icone}"></i></div>
+                            <div class="gs-kpi__value"
+                                 data-countup="#{ind.cible}"
+                                 data-decimals="#{ind.decimales}"
+                                 data-suffix="#{ind.suffixe}">0</div>
+                            <div class="gs-kpi__label">#{msg[ind.cle]}</div>
+                        </div>
+                    </ui:repeat>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ COMMENT ÇA MARCHE ============================ -->
+        <section class="gs-section" id="how">
+            <div class="gs-container">
+                <div class="gs-section__head -center" data-aos="fade-up">
+                    <span class="gs-eyebrow">#{msg['home.section.how.title']}</span>
+                    <h2>#{msg['home.section.how.subtitle']}</h2>
+                </div>
+                <div class="gs-steps">
+                    <ui:repeat value="#{homeBean.etapes}" var="etape" varStatus="st">
+                        <article class="gs-step" data-aos="fade-up" data-aos-delay="#{st.index * 120}">
+                            <span class="gs-step__num">#{etape.numero}</span>
+                            <div class="gs-step__icon"><i class="#{etape.icone}"></i></div>
+                            <h3>#{msg[etape.cleTitre]}</h3>
+                            <p>#{msg[etape.cleTexte]}</p>
+                        </article>
+                    </ui:repeat>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ DÉCOUVRIR (parallaxe) ============================ -->
+        <section class="gs-section gs-parallax" id="discover">
+            <div class="gs-parallax__bg gs-discover__bg" data-parallax="0.12"></div>
+            <div class="gs-container">
+                <div class="gs-glass-card" data-aos="fade-right">
+                    <span class="gs-eyebrow">#{msg['nav.services']}</span>
+                    <h2>#{msg['home.section.discover.title']}</h2>
+                    <p>#{msg['home.section.discover.text']}</p>
+
+                    <a class="gs-btn -accent" href="#{request.contextPath}/public/catalogue.xhtml">
+                        <i class="pi pi-search"></i> #{msg['home.section.discover.cta']}
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ GÉOLOCALISATION (split) ============================ -->
+        <section class="gs-section" id="geoloc">
+            <div class="gs-container gs-split">
+                <div data-aos="fade-right">
+                    <span class="gs-eyebrow">#{msg['nav.map']}</span>
+                    <h2>#{msg['home.section.geoloc.title']}</h2>
+                    <p class="gs-lead">#{msg['home.section.geoloc.text']}</p>
+                    <div class="gs-chip-list">
+                        <span class="gs-chip">Continent</span>
+                        <span class="gs-chip">ZoneGéographique</span>
+                        <span class="gs-chip">Pays</span>
+                        <span class="gs-chip">Région</span>
+                        <span class="gs-chip">Ville</span>
+                        <span class="gs-chip">Position</span>
+                    </div>
+                    <p style="margin-top:20px">
+                        <a class="gs-btn -accent" href="#{request.contextPath}/public/carte.xhtml">
+                            <i class="pi pi-map"></i> #{msg['carte.voirComplete']}
+                        </a>
+                    </p>
+                </div>
+                <div class="gs-split__media -tall -map" data-aos="fade-left">
+                    <div id="gsHomeMap"></div>
+                    <h:outputScript>
+                        //<![CDATA[
+                        (function () {
+                            var pts = #{homeBean.pointsCarteJson};
+                            var t = 0;
+                            (function boot() {
+                                if (window.gsMapView) { window.gsMapView('gsHomeMap', pts); }
+                                else if (t++ < 40) { setTimeout(boot, 150); }
+                            })();
+                        })();
+                        //]]>
+                    </h:outputScript>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ VITRINE (carrousel) ============================ -->
+        <section class="gs-section gs-vitrine" id="vitrine">
+            <div class="gs-container">
+                <div class="gs-section__head -center" data-aos="fade-up">
+                    <span class="gs-eyebrow">#{msg['home.section.vitrine.title']}</span>
+                    <h2>#{msg['home.section.vitrine.subtitle']}</h2>
+                </div>
+            </div>
+            <div class="gs-container">
+                <div class="gs-carousel" data-carousel="true" data-aos="fade-up">
+                    <div class="gs-carousel__track">
+                        <ui:repeat value="#{homeBean.vitrine}" var="s">
+                            <article class="gs-slide">
+                                <div class="gs-slide__img">
+                                    <span class="gs-slide__badge">#{msg[s.cleCategorie]}</span>
+                                    <img src="#{resource[s.image]}" alt="#{msg[s.cleTitre]}" loading="lazy"/>
+                                </div>
+                                <div class="gs-slide__body">
+                                    <span class="gs-slide__city"><i class="pi pi-map-marker"></i> #{s.ville}</span>
+                                    <h3 class="gs-slide__title">#{msg[s.cleTitre]}</h3>
+                                    <span class="gs-slide__note">
+                                        <i class="pi pi-star-fill"></i> #{s.note}
+                                    </span>
+                                </div>
+                            </article>
+                        </ui:repeat>
+                    </div>
+                    <div class="gs-carousel__nav">
+                        <button type="button" class="gs-carousel__arrow" data-carousel-prev="true"
+                                aria-label="Précédent"><i class="pi pi-chevron-left"></i></button>
+                        <button type="button" class="gs-carousel__arrow" data-carousel-next="true"
+                                aria-label="Suivant"><i class="pi pi-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ CATALOGUE ============================ -->
+        <section class="gs-section gs-catalogue" id="catalogue">
+            <video data-bg-video="true" aria-hidden="true" tabindex="-1"
+                   autoplay="autoplay" muted="muted" loop="loop" playsinline="playsinline" preload="none"
+                   poster="#{resource['media/video/app-constellation-poster.jpg']}">
+                <source src="#{resource['media/video/app-constellation.mp4']}" type="video/mp4"/>
+            </video>
+            <div class="gs-container">
+                <div class="gs-section__head" data-aos="fade-up">
+                    <span class="gs-eyebrow">#{msg['nav.catalogue']}</span>
+                    <h2>#{msg['home.section.catalogue.title']}</h2>
+                    <p class="gs-lead">#{msg['home.section.catalogue.text']}</p>
+                </div>
+                <div class="gs-tree" data-aos="fade-up" data-aos-delay="120">
+                    <span>CategorieService</span><span>Service</span><span>Catalogue</span><span>Produit</span><span>Article</span><span>VarieteArticle</span><span>ProprietesArticle</span><span>UniteMesure</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================ APPEL À L'ACTION ============================ -->
+        <section class="gs-section gs-cta" id="cta">
+            <div class="gs-container">
+                <div class="gs-cta__box" data-aos="zoom-in">
+                    <h2>#{msg['home.cta.title']}</h2>
+                    <p>#{msg['home.cta.text']}</p>
+                    <p style="margin-top:28px; margin-bottom:0">
+                        <a class="gs-btn -accent" href="mailto:prestataires@gservices-demo.sn"><i class="pi pi-envelope"></i> #{msg['home.cta.button']}</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </ui:define>
+</ui:composition>

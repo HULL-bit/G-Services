@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/layout.xhtml">
+
+    <ui:define name="title">#{msg['inscription.title']} — #{msg['app.name']}</ui:define>
+
+    <ui:define name="head">
+        <link rel="stylesheet" type="text/css" href="#{resource['css/vitrine.css']}"/>
+    </ui:define>
+
+    <ui:define name="content">
+        <section class="gs-auth"
+                 style="background-image:linear-gradient(120deg, rgba(17,24,39,.92), rgba(31,58,95,.80)), url('#{resource['media/carousel/city-navigation.jpg']}')">
+
+            <div class="gs-auth-card" id="inscCard" data-aos="zoom-in">
+                <div class="gs-auth-card__brand">
+                    <span class="gs-auth-card__logo"><i class="pi pi-user-plus"></i></span>
+                    <div>
+                        <p class="gs-eyebrow">#{msg['inscription.eyebrow']}</p>
+                        <h1>#{msg['inscription.title']}</h1>
+                    </div>
+                </div>
+
+                <h:form id="frmInscription" prependId="false">
+
+                    <!-- ====== Étape A : choix du type ====== -->
+                    <div data-insc="type" class="is-on">
+                        <p class="gs-auth-card__lead">#{msg['auth.signup.pick']}</p>
+                        <div class="gs-choice">
+                            <p:commandLink styleClass="gs-choice__opt" process="@this"
+                                           action="#{inscriptionBean.choisirClient}"
+                                           update="paneForm" oncomplete="gsInscStep('form')">
+                                <span class="gs-choice__ic"><i class="pi pi-user"></i></span>
+                                <span class="gs-choice__txt">
+                                    <strong>#{msg['inscription.type.client']}</strong>
+                                    <span>#{msg['auth.type.client.sub']}</span>
+                                </span>
+                                <i class="pi pi-angle-right gs-choice__go"></i>
+                            </p:commandLink>
+                            <p:commandLink styleClass="gs-choice__opt -accent" process="@this"
+                                           action="#{inscriptionBean.choisirFournisseur}"
+                                           update="paneForm" oncomplete="gsInscStep('form')">
+                                <span class="gs-choice__ic"><i class="pi pi-briefcase"></i></span>
+                                <span class="gs-choice__txt">
+                                    <strong>#{msg['inscription.type.fournisseur']}</strong>
+                                    <span>#{msg['auth.type.fournisseur.sub']}</span>
+                                </span>
+                                <i class="pi pi-angle-right gs-choice__go"></i>
+                            </p:commandLink>
+                        </div>
+                        <div class="gs-auth-card__actions" style="margin-top:18px">
+                            <h:link outcome="/admin/index" styleClass="gs-auth-card__alt">#{msg['inscription.dejaCompte']}</h:link>
+                        </div>
+                    </div>
+
+                    <!-- ====== Étape B : le formulaire ====== -->
+                    <div data-insc="form">
+                    <h:panelGroup id="paneForm" layout="block">
+                        <h:panelGroup rendered="#{not inscriptionBean.inscrit}" layout="block">
+                            <button type="button" class="gs-step__back" onclick="gsInscStep('type')">
+                                <i class="pi pi-arrow-left"></i> #{msg['auth.back']}
+                            </button>
+                            <p class="gs-auth-card__lead">
+                                <strong>#{inscriptionBean.form.fournisseur ? msg['inscription.type.fournisseur'] : msg['inscription.type.client']}</strong>
+                                — #{inscriptionBean.form.fournisseur ? msg['auth.type.fournisseur.sub'] : msg['auth.type.client.sub']}
+                            </p>
+
+                            <p:messages showDetail="true" closable="true" styleClass="gs-auth-card__msg"/>
+
+                            <div class="gs-auth-grid">
+                                <div class="gs-field-v">
+                                    <label>#{msg['personne.prenom']}</label>
+                                    <span class="ui-input-icon-left"><i class="pi pi-user"></i>
+                                        <p:inputText value="#{inscriptionBean.form.prenom}" required="true" maxlength="80"/>
+                                    </span>
+                                </div>
+                                <div class="gs-field-v">
+                                    <label>#{msg['personne.nom']}</label>
+                                    <span class="ui-input-icon-left"><i class="pi pi-user"></i>
+                                        <p:inputText value="#{inscriptionBean.form.nom}" required="true" maxlength="80"/>
+                                    </span>
+                                </div>
+                                <div class="gs-field-v gs-col-2">
+                                    <label>#{msg['personne.email']}</label>
+                                    <span class="ui-input-icon-left"><i class="pi pi-envelope"></i>
+                                        <p:inputText value="#{inscriptionBean.form.email}" required="true" maxlength="150"
+                                                     validatorMessage="#{msg['inscription.emailInvalide']}">
+                                            <f:validateRegex pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"/>
+                                        </p:inputText>
+                                    </span>
+                                </div>
+                                <div class="gs-field-v gs-col-2">
+                                    <label>#{msg['personne.login']}</label>
+                                    <span class="ui-input-icon-left"><i class="pi pi-at"></i>
+                                        <p:inputText value="#{inscriptionBean.form.login}" required="true" maxlength="60"/>
+                                    </span>
+                                </div>
+                                <div class="gs-field-v">
+                                    <label>#{msg['inscription.motDePasse']}</label>
+                                    <p:password value="#{inscriptionBean.form.motDePasse}" required="true"
+                                                feedback="true" toggleMask="true" minLength="8" style="width:100%"/>
+                                </div>
+                                <div class="gs-field-v">
+                                    <label>#{msg['inscription.motDePasseConfirme']}</label>
+                                    <p:password value="#{inscriptionBean.form.motDePasseConfirme}" required="true"
+                                                toggleMask="true" style="width:100%"/>
+                                </div>
+
+                                <ui:fragment rendered="#{inscriptionBean.form.fournisseur}">
+                                    <div class="gs-field-v gs-col-2">
+                                        <label>#{msg['comptes.f.specialite']}</label>
+                                        <p:selectOneMenu value="#{inscriptionBean.form.categorieSpecialiteId}"
+                                                         filter="true" filterMatchMode="contains" style="width:100%">
+                                            <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                                            <f:selectItems value="#{inscriptionBean.categories}" var="c"
+                                                           itemLabel="#{c.libelle}" itemValue="#{c.id}"/>
+                                        </p:selectOneMenu>
+                                        <small class="gs-hint">#{msg['inscription.specialite.aide']}</small>
+                                    </div>
+                                    <div class="gs-field-v gs-col-2">
+                                        <label>#{msg['comptes.f.serviceLibelle']}</label>
+                                        <span class="ui-input-icon-left"><i class="pi pi-briefcase"></i>
+                                            <p:inputText value="#{inscriptionBean.form.serviceLibelle}" maxlength="120"
+                                                         placeholder="#{msg['comptes.f.serviceLibelle.aide']}"/>
+                                        </span>
+                                    </div>
+                                </ui:fragment>
+                            </div>
+
+                            <p class="gs-auth-card__rgpd"><i class="pi pi-lock"></i> #{msg['inscription.rgpd']}</p>
+
+                            <div class="gs-auth-card__actions">
+                                <p:commandButton value="#{msg['inscription.creer']}" icon="pi pi-user-plus"
+                                                 action="#{inscriptionBean.valider}" update="paneForm"
+                                                 oncomplete="if (args &amp;&amp; args.inscrit) gsInscStep('form')"
+                                                 styleClass="gs-btn"/>
+                            </div>
+                        </h:panelGroup>
+
+                        <h:panelGroup rendered="#{inscriptionBean.inscrit}" layout="block" styleClass="gs-auth-card__done">
+                            <i class="pi pi-check-circle"></i>
+                            <h2 style="margin:0 0 6px">#{msg['inscription.merci']}</h2>
+                            <p>#{msg['inscription.confirme']}</p>
+                            <h:link outcome="/admin/index" styleClass="gs-btn">
+                                <i class="pi pi-sign-in"></i> #{msg['nav.inscription.login']}
+                            </h:link>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                    </div>
+                </h:form>
+            </div>
+        </section>
+
+        <h:outputScript target="body">
+            //<![CDATA[
+            (function () {
+                var card = document.getElementById('inscCard');
+                window.gsInscStep = function (name) {
+                    card.querySelectorAll('[data-insc]').forEach(function (el) {
+                        el.classList.toggle('is-on', el.getAttribute('data-insc') === name);
+                    });
+                };
+                if (#{inscriptionBean.inscrit ? 'true' : 'false'}) { window.gsInscStep('form'); }
+            })();
+            //]]>
+        </h:outputScript>
+    </ui:define>
+</ui:composition>

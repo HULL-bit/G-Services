@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/layout.xhtml">
+
+    <ui:define name="title">#{msg['carte.title']} — #{msg['app.name']}</ui:define>
+
+    <ui:define name="head">
+        <link rel="stylesheet" type="text/css" href="#{resource['css/vitrine.css']}"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+        <script src="#{resource['js/geo.js']}"></script>
+    </ui:define>
+
+    <ui:define name="content">
+      <div class="gs-carte-wrap">
+        <section class="gs-carte-page">
+            <div class="gs-carte-panel">
+                <div class="gs-carte-panel__head">
+                    <p class="gs-eyebrow">#{msg['carte.eyebrow']}</p>
+                    <h1>#{msg['carte.title']}</h1>
+                    <p class="gs-hint">#{msg['carte.lead']} — <strong id="carteCount">#{carteBean.nombre}</strong> #{msg['carte.prestataires']}</p>
+                </div>
+
+                <div class="gs-carte-filtres">
+                    <span class="ui-input-icon-left" style="width:100%">
+                        <i class="pi pi-search"></i>
+                        <input type="text" id="fTexte" class="ui-inputfield ui-inputtext ui-widget"
+                               placeholder="#{msg['carte.f.recherche']}" style="width:100%"/>
+                    </span>
+
+                    <label class="gs-carte-filtres__lbl">#{msg['carte.f.categorie']}</label>
+                    <select id="fCategorie" class="ui-inputfield ui-inputtext ui-widget" style="width:100%">
+                        <option value="">#{msg['carte.f.toutes']}</option>
+                        <ui:repeat value="#{carteBean.categories}" var="c">
+                            <option value="#{c.libelle}">#{c.libelle}</option>
+                        </ui:repeat>
+                    </select>
+
+                    <label class="gs-carte-filtres__lbl">#{msg['carte.f.noteMin']}</label>
+                    <span id="fNoteStars" class="gs-carte-filtres__stars">
+                        <i class="pi pi-star"></i><i class="pi pi-star"></i><i class="pi pi-star"></i>
+                        <i class="pi pi-star"></i><i class="pi pi-star"></i>
+                    </span>
+                    <input type="hidden" id="fNote" value="0"/>
+
+                    <label class="gs-carte-filtres__check">
+                        <input type="checkbox" id="fDispo"/> #{msg['carte.f.ouvert']}
+                    </label>
+
+                    <button type="button" id="fReset" class="gs-btn -sm" style="width:100%">
+                        <i class="pi pi-filter-slash"></i> #{msg['carte.f.reset']}
+                    </button>
+                </div>
+
+                <div id="carteList" class="gs-carte-liste"></div>
+            </div>
+
+            <div class="gs-carte-map">
+                <div id="carteMap"></div>
+            </div>
+        </section>
+      </div>
+
+        <h:outputScript>
+            //<![CDATA[
+            window.GS_CARTE = #{carteBean.servicesJson};
+            //]]>
+        </h:outputScript>
+    </ui:define>
+
+    <ui:define name="scripts">
+        <h:outputScript library="js" name="carte.js" target="body"/>
+    </ui:define>
+</ui:composition>

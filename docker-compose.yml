@@ -1,0 +1,71 @@
+# ============================================================================
+#  G-SERVICES — stack complète (une seule commande : docker compose up --build)
+#    - db      : PostgreSQL 16
+#    - app     : application Spring Boot + JSF/PrimeFaces (WAR exécutable)
+#    - pgadmin : administration de la base
+# ============================================================================
+name: gservices
+
+services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: gs-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-gservices}
+      POSTGRES_USER: ${DB_USER:-gservices}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gservices}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - gs_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-gservices} -d ${DB_NAME:-gservices}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gs-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME:-gservices}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-gservices}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-gservices}
+      FACES_PROJECT_STAGE: ${FACES_PROJECT_STAGE:-Production}
+      PF_THEME: ${PF_THEME:-saga}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: gs-pgadmin
+    environment:
+      # pgAdmin >=8 rejette les TLD réservés (.local, .test…) : garder un domaine valide.
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@gservices.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  gs_data:
+    name: gservices_pgdata

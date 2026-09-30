@@ -1,0 +1,200 @@
+/* ============================================================================
+   G-SERVICES — Thème sombre  (data-theme="dark", toujours explicite : le
+   template résout le thème système AVANT le premier rendu.)
+
+   Palette harmonisée sur une seule teinte bleu-ardoise, échelle d'élévation
+   régulière : fond < menu < panneau < en-tête < survol. Aucun dégradé.
+   ========================================================================== */
+
+:root[data-theme="dark"] {
+
+  /* ---- Jetons du design system G-SERVICES ---- */
+  --gs-bg:          #0f1522;   /* fond de l'application            */
+  --gs-sidebar:     #0b111c;   /* menu latéral (plat, le + sombre) */
+  --gs-surface:     #171d2b;   /* cartes, tableaux, dialogues      */
+  --gs-surface-2:   #1e2537;   /* en-têtes de tableau, pieds       */
+  --gs-hover:       #262f44;   /* survol de ligne / d'élément      */
+
+  --gs-primary:     #9cc0ec;   /* TEXTE uniquement (titres, KPI)   */
+  --gs-primary-2:   #7ba3d6;
+  --gs-accent:      #d4b455;
+  --gs-danger:      #ef6570;
+  --gs-success:     #45c493;
+
+  --gs-text:        #d8e0ee;
+  --gs-text-soft:   #8f9cb5;
+
+  --gs-border:      rgba(160,175,210,.13);
+  --gs-border-str:  rgba(160,175,210,.24);
+  --gs-th-bg:       #1e2537;
+
+  --gs-glass:       rgba(23,29,43,.55);
+  --gs-glass-solid: rgba(11,17,28,.88);
+  --gs-shadow:      0 8px 26px rgba(0,0,0,.40);
+  --gs-shadow-lg:   0 22px 55px rgba(0,0,0,.52);
+
+  --gs-btn:         #3a6098;
+  --gs-btn-hover:   #446ead;
+
+  /* ---- Jetons PrimeOne (thème « saga » des composants PrimeFaces) ---- */
+  --surface-a: #171d2b; --surface-b: #0f1522; --surface-c: #262f44; --surface-d: #2f3a52;
+  --surface-e: #171d2b; --surface-f: #171d2b;
+  --surface-0: #171d2b; --surface-50: #1a2130; --surface-100: #1e2537;
+  --surface-200: #262f44; --surface-300: #2f3a52;
+  --surface-ground: #0f1522; --surface-section: #0f1522; --surface-card: #171d2b;
+  --surface-overlay: #191f2e; --surface-border: rgba(160,175,210,.16); --surface-hover: #262f44;
+  --text-color: #d8e0ee; --text-color-secondary: #8f9cb5;
+  --primary-color: #6c9ad4; --primary-color-text: #ffffff;
+  --maskbg: rgba(4,7,14,.72); --focus-ring: 0 0 0 .2rem rgba(108,154,212,.4);
+}
+
+/* Repli sans JavaScript : le système est en sombre et aucun thème n'est stampé. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --gs-bg: #0f1522; --gs-sidebar: #0b111c; --gs-surface: #171d2b; --gs-surface-2: #1e2537;
+    --gs-hover: #262f44; --gs-primary: #9cc0ec; --gs-primary-2: #7ba3d6; --gs-accent: #d4b455;
+    --gs-danger: #ef6570; --gs-success: #45c493; --gs-text: #d8e0ee; --gs-text-soft: #8f9cb5;
+    --gs-border: rgba(160,175,210,.13); --gs-border-str: rgba(160,175,210,.24); --gs-th-bg: #1e2537;
+    --gs-glass: rgba(23,29,43,.55); --gs-glass-solid: rgba(11,17,28,.88);
+    --gs-btn: #3a6098; --gs-btn-hover: #446ead;
+    --surface-a: #171d2b; --surface-b: #0f1522; --surface-card: #171d2b; --surface-ground: #0f1522;
+    --surface-overlay: #191f2e; --surface-border: rgba(160,175,210,.16); --surface-hover: #262f44;
+    --text-color: #d8e0ee; --text-color-secondary: #8f9cb5; --primary-color: #6c9ad4;
+    --primary-color-text: #fff; --maskbg: rgba(4,7,14,.72);
+  }
+}
+
+/* ===================== Corrections ciblées ===================== */
+
+:root[data-theme="dark"] body.gs-admin { background: var(--gs-bg); }
+
+/* ---- Menu latéral : plat, sans dégradé ---- */
+:root[data-theme="dark"] .gs-side {
+  background: var(--gs-sidebar) !important;
+  border-right: 1px solid rgba(255,255,255,.05);
+  color: rgba(255,255,255,.72);
+}
+:root[data-theme="dark"] .gs-side__link { color: rgba(255,255,255,.7); }
+:root[data-theme="dark"] .gs-side__link:hover { background: rgba(255,255,255,.055); color: #fff; }
+:root[data-theme="dark"] .gs-side__link.is-active {
+  background: rgba(212,180,85,.13); color: #fff; box-shadow: inset 3px 0 0 var(--gs-accent);
+}
+:root[data-theme="dark"] .gs-side__title { color: rgba(255,255,255,.38); }
+:root[data-theme="dark"] .gs-side__badge { background: rgba(255,255,255,.1); color: #e2e9f4; }
+:root[data-theme="dark"] .gs-side__foot a { color: rgba(255,255,255,.55); }
+
+/* ---- Pas d'ambiance colorée derrière le contenu en sombre ---- */
+:root[data-theme="dark"] .gs-admin__content::before { display: none; }
+
+/* ---- Topbar ---- */
+:root[data-theme="dark"] .gs-topbar { background: var(--gs-glass-solid); border-bottom-color: var(--gs-border); }
+:root[data-theme="dark"] .gs-topbar #gs-theme-toggle { background: rgba(255,255,255,.08); color: #fff; }
+:root[data-theme="dark"] .gs-topbar #gs-theme-toggle:hover { background: rgba(255,255,255,.15); }
+:root[data-theme="dark"] .gs-topbar .gs-lang a,
+:root[data-theme="dark"] .gs-topbar .gs-lang button { color: rgba(255,255,255,.66); }
+:root[data-theme="dark"] .gs-topbar .gs-lang .is-active { color: var(--gs-accent); }
+:root[data-theme="dark"] .gs-logout-btn { background: var(--gs-surface-2); border-color: var(--gs-border); color: var(--gs-text); }
+
+/* ---- Cartes & tableaux ---- */
+:root[data-theme="dark"] .gs-card,
+:root[data-theme="dark"] .gs-kpi-card,
+:root[data-theme="dark"] .ui-datatable.gs-card { background: var(--gs-surface); border-color: var(--gs-border); }
+
+:root[data-theme="dark"] .ui-datatable .ui-datatable-thead > tr > th,
+:root[data-theme="dark"] .ui-datatable thead th {
+  background: var(--gs-surface-2) !important; color: var(--gs-text-soft) !important;
+  border-bottom-color: var(--gs-border-str) !important;
+}
+:root[data-theme="dark"] .ui-datatable .ui-datatable-tbody > tr,
+:root[data-theme="dark"] .ui-datatable tbody tr { background: var(--gs-surface) !important; color: var(--gs-text); }
+:root[data-theme="dark"] .ui-datatable .ui-datatable-tbody > tr:nth-child(even) { background: #141a27 !important; }
+:root[data-theme="dark"] .ui-datatable .ui-datatable-tbody > tr > td,
+:root[data-theme="dark"] .ui-datatable tbody td { border-bottom-color: var(--gs-border) !important; }
+:root[data-theme="dark"] .ui-datatable .ui-datatable-tbody > tr:hover { background: var(--gs-hover) !important; }
+:root[data-theme="dark"] .ui-datatable .ui-datatable-tbody > tr > td:first-child { color: var(--gs-primary); }
+
+:root[data-theme="dark"] .ui-paginator { background: var(--gs-surface-2) !important; border-top-color: var(--gs-border) !important; }
+:root[data-theme="dark"] .ui-paginator .ui-paginator-page.ui-state-active { background: var(--gs-btn) !important; color: #fff !important; }
+:root[data-theme="dark"] .ui-paginator button { color: var(--gs-text-soft); }
+:root[data-theme="dark"] .ui-paginator select,
+:root[data-theme="dark"] .ui-paginator .ui-paginator-rpp-options {
+  background: #1a2233 !important; color: var(--gs-text) !important;
+  border: 1px solid var(--gs-border-str) !important; border-radius: 8px; padding: 3px 6px;
+}
+
+/* ---- Champs ---- */
+:root[data-theme="dark"] .ui-inputtext,
+:root[data-theme="dark"] .ui-inputfield,
+:root[data-theme="dark"] .ui-selectonemenu,
+:root[data-theme="dark"] .ui-spinner-input,
+:root[data-theme="dark"] .ui-inputnumber-input,
+:root[data-theme="dark"] .ui-inputtextarea {
+  background: #1a2233 !important; color: var(--gs-text) !important; border-color: var(--gs-border-str) !important;
+}
+:root[data-theme="dark"] .ui-inputtext::placeholder { color: #67748c !important; }
+:root[data-theme="dark"] .ui-inputtext:enabled:focus,
+:root[data-theme="dark"] .ui-inputtextarea:enabled:focus { border-color: var(--gs-primary-2) !important; }
+:root[data-theme="dark"] .ui-selectonemenu-panel,
+:root[data-theme="dark"] .ui-autocomplete-panel,
+:root[data-theme="dark"] .ui-datepicker,
+:root[data-theme="dark"] .ui-overlaypanel { background: var(--gs-surface-2) !important; border-color: var(--gs-border-str) !important; color: var(--gs-text); }
+:root[data-theme="dark"] .ui-selectonemenu-item:hover,
+:root[data-theme="dark"] .ui-autocomplete-item:hover { background: var(--gs-hover) !important; }
+:root[data-theme="dark"] .ui-selectonemenu-item.ui-state-highlight { background: var(--gs-btn) !important; color: #fff !important; }
+
+/* ---- Boutons ---- */
+:root[data-theme="dark"] .ui-button:not(.ui-button-flat):not(.ui-button-outlined):not(.ui-button-text) {
+  background: var(--gs-btn) !important; border-color: var(--gs-btn) !important; color: #fff !important;
+}
+:root[data-theme="dark"] .ui-button:not(.ui-button-flat):not(.ui-button-outlined):not(.ui-button-text):enabled:hover {
+  background: var(--gs-btn-hover) !important; border-color: var(--gs-btn-hover) !important;
+}
+:root[data-theme="dark"] .gs-actions .ui-button.ui-button-flat { color: var(--gs-primary) !important; }
+:root[data-theme="dark"] .gs-actions .ui-button.ui-button-flat:hover { background: rgba(123,163,214,.13) !important; }
+
+/* ---- Dialogues ---- */
+:root[data-theme="dark"] .ui-dialog .ui-dialog-titlebar,
+:root[data-theme="dark"] .ui-dialog .ui-dialog-content,
+:root[data-theme="dark"] .ui-confirm-dialog .ui-dialog-content { background: var(--gs-surface) !important; color: var(--gs-text); }
+:root[data-theme="dark"] .ui-dialog .ui-dialog-titlebar { border-bottom-color: var(--gs-border) !important; color: var(--gs-primary) !important; }
+:root[data-theme="dark"] .ui-dialog .ui-dialog-footer { background: var(--gs-surface-2) !important; border-top-color: var(--gs-border) !important; }
+
+/* ---- Onglets ---- */
+:root[data-theme="dark"] .gs-sec-tabs .ui-tabs-nav { border-bottom-color: var(--gs-border) !important; }
+:root[data-theme="dark"] .gs-sec-tabs .ui-tabs-nav li a { color: var(--gs-text-soft) !important; }
+:root[data-theme="dark"] .gs-sec-tabs .ui-tabs-nav li a:hover { color: var(--gs-primary) !important; }
+:root[data-theme="dark"] .gs-sec-tabs .ui-tabs-nav li.ui-state-active a {
+  color: var(--gs-primary) !important; border-bottom-color: var(--gs-accent) !important;
+}
+:root[data-theme="dark"] .ui-fieldset,
+:root[data-theme="dark"] .ui-panel { background: var(--gs-surface) !important; border-color: var(--gs-border) !important; }
+:root[data-theme="dark"] .ui-fieldset .ui-fieldset-legend { background: var(--gs-surface-2) !important; color: var(--gs-primary) !important; border-color: var(--gs-border) !important; }
+
+/* ---- Pastilles d'état ---- */
+:root[data-theme="dark"] .ui-tag,
+:root[data-theme="dark"] .ui-tag.ui-tag-info    { background: rgba(123,163,214,.18) !important; color: #bcd6f2 !important; }
+:root[data-theme="dark"] .ui-tag.ui-tag-success { background: rgba(69,196,147,.16) !important;  color: #5fd0a4 !important; }
+:root[data-theme="dark"] .ui-tag.ui-tag-danger  { background: rgba(239,101,112,.16) !important; color: #f2969d !important; }
+:root[data-theme="dark"] .ui-tag.ui-tag-warning { background: rgba(212,180,85,.18) !important;  color: #e0c485 !important; }
+
+/* ---- Éléments divers calés sur des rgba() du thème clair ---- */
+:root[data-theme="dark"] .gs-count { background: rgba(123,163,214,.16); color: #bcd6f2; }
+:root[data-theme="dark"] .gs-bar__track { background: rgba(255,255,255,.07); }
+:root[data-theme="dark"] .gs-droits-scroll { border-color: var(--gs-border); }
+:root[data-theme="dark"] .gs-lock-item { border-bottom-color: var(--gs-border); }
+:root[data-theme="dark"] .ui-messages-info,
+:root[data-theme="dark"] .ui-message-info { background: rgba(123,163,214,.12) !important; color: #cfe0f5 !important; border-color: rgba(123,163,214,.3) !important; }
+:root[data-theme="dark"] .ui-messages-error,
+:root[data-theme="dark"] .ui-message-error { background: rgba(239,101,112,.13) !important; color: #f2a6ac !important; border-color: rgba(239,101,112,.35) !important; }
+
+/* ---- Carte Leaflet : atténue le blanc des tuiles ---- */
+:root[data-theme="dark"] .gs-map .leaflet-tile { filter: brightness(.72) contrast(1.05); }
+:root[data-theme="dark"] .gs-map .leaflet-container { background: #0f1522; }
+:root[data-theme="dark"] .gs-map .leaflet-bar a { background: var(--gs-surface); color: var(--gs-text); border-color: var(--gs-border); }
+
+/* ===================== Vitrine publique (héritage) ===================== */
+:root[data-theme="dark"] .gs-header.-scrolled { box-shadow: 0 6px 24px rgba(0,0,0,.5); }
+:root[data-theme="dark"] .gs-vitrine { background: linear-gradient(180deg, #0f1522, #131b2c); }
+:root[data-theme="dark"] .gs-step__num { color: rgba(255,255,255,.06); }
+:root[data-theme="dark"] .gs-kpi__value { color: var(--gs-primary); }
+:root[data-theme="dark"] .gs-slide__badge { color: #0f1522; }

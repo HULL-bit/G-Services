@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      lang="#{localeBean.language}">
+<f:view contentType="text/html" encoding="UTF-8" locale="#{localeBean.locale}">
+<h:head>
+    <f:facet name="first">
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="theme-color" content="#1F3A5F"/>
+        <script>
+            (function () {
+                try {
+                    var t = localStorage.getItem('gs-theme');
+                    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+                } catch (e) {}
+            })();
+        </script>
+    </f:facet>
+    <title>#{msg['login.title']} — #{msg['app.name']}</title>
+    <link rel="icon" type="image/svg+xml" href="#{resource['media/logo/favicon.svg']}"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Poppins:wght@600;700&amp;display=swap"/>
+    <h:outputStylesheet library="primefaces" name="primeicons/primeicons.css"/>
+    <f:facet name="last">
+    <link rel="stylesheet" type="text/css" href="#{resource['css/theme.css']}"/>
+    <link rel="stylesheet" type="text/css" href="#{resource['css/animations.css']}"/>
+    <link rel="stylesheet" type="text/css" href="#{resource['css/dark.css']}"/>
+    <style>
+        .gs-auth { min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 32px; position: relative; overflow: hidden; }
+        .gs-auth__bg { position: absolute; inset: 0; z-index: 0; object-fit: cover; width: 100%; height: 100%; opacity: .5; }
+        .gs-auth::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(160deg, rgba(17,24,39,.88), rgba(31,58,95,.68)); }
+        .gs-auth__card { position: relative; z-index: 2; width: min(430px, 100%); background: var(--gs-surface);
+            border-radius: var(--gs-radius); box-shadow: var(--gs-shadow-lg); padding: 38px 34px; }
+        .gs-auth__logo { height: 38px; margin-bottom: 20px; }
+        .gs-auth__card h1 { font-size: 1.42rem; margin: 0 0 4px; }
+        .gs-auth__card p.sub { color: var(--gs-text-soft); margin: 0 0 24px; font-size: .93rem; }
+
+        [data-panel] { display: none; animation: gsPanelIn .28s ease; }
+        [data-panel].is-on { display: block; }
+        @keyframes gsPanelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+        .gs-choice { display: grid; gap: 12px; margin-top: 4px; }
+        .gs-choice__opt { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+            padding: 16px 18px; border: 1px solid var(--gs-border); border-radius: var(--gs-radius-sm);
+            background: var(--gs-bg); color: var(--gs-text); cursor: pointer; font: inherit; text-decoration: none;
+            transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+        .gs-choice__opt:hover { border-color: var(--gs-primary-2); transform: translateY(-2px); box-shadow: var(--gs-shadow); }
+        .gs-choice__ic { flex: none; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px;
+            background: linear-gradient(135deg, var(--gs-primary), var(--gs-primary-2)); color: #fff; font-size: 1.15rem; }
+        .gs-choice__opt.-accent .gs-choice__ic { background: linear-gradient(135deg, var(--gs-accent), #E0BF5A); color: #1a1a1a; }
+        .gs-choice__txt strong { display: block; font-size: .98rem; }
+        .gs-choice__txt span { display: block; font-size: .82rem; color: var(--gs-text-soft); margin-top: 1px; }
+        .gs-choice__go { margin-left: auto; color: var(--gs-text-soft); }
+
+        .gs-step__back { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; cursor: pointer;
+            color: var(--gs-text-soft); font: inherit; font-size: .86rem; padding: 0; margin-bottom: 14px; }
+        .gs-step__back:hover { color: var(--gs-primary-2); }
+
+        .gs-field { margin-bottom: 15px; }
+        .gs-field label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: 6px; color: var(--gs-text); }
+        .gs-field input[type=text], .gs-field input[type=password] {
+            width: 100%; padding: 12px 14px; border: 1px solid var(--gs-border); border-radius: var(--gs-radius-sm);
+            font: inherit; background: var(--gs-bg); color: var(--gs-text); transition: border-color .2s ease; }
+        .gs-field input:focus { outline: none; border-color: var(--gs-primary-2); }
+        .gs-check { display: flex; align-items: center; gap: 8px; font-size: .88rem; color: var(--gs-text-soft); margin: 2px 0 20px; }
+        .gs-alert { padding: 11px 14px; border-radius: var(--gs-radius-sm); font-size: .88rem; margin-bottom: 18px; }
+        .gs-alert.-err { background: rgba(230,57,70,.12); color: #b02a35; }
+        .gs-alert.-ok  { background: rgba(47,133,90,.12); color: #226b47; }
+        .gs-alert.-warn { background: rgba(180,83,9,.14); color: #92400e; }
+
+        .gs-auth__foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gs-border);
+            display: flex; justify-content: space-between; align-items: center; font-size: .86rem; gap: 12px; }
+        .gs-auth__foot a { color: var(--gs-text-soft); }
+        .gs-auth__foot a:hover { color: var(--gs-primary-2); }
+    </style>
+    </f:facet>
+</h:head>
+<h:body styleClass="gs-body">
+    <div class="gs-auth">
+        <video class="gs-auth__bg" data-bg-video="true" autoplay="autoplay" muted="muted" loop="loop"
+               playsinline="playsinline" preload="none"
+               poster="#{resource['media/backgrounds/videos-poster.jpg']}" aria-hidden="true">
+            <source src="#{resource['media/backgrounds/videos.webm']}" type="video/webm"/>
+            <source src="#{resource['media/backgrounds/videos.mp4']}" type="video/mp4"/>
+        </video>
+
+        <div class="gs-auth__card" id="authCard" data-aos="zoom-in">
+            <h:graphicImage name="media/logo/gservices-logo.svg" alt="#{msg['app.name']}" styleClass="gs-auth__logo"/>
+
+            <!-- ============ Étape 1 : le choix ============ -->
+            <div data-panel="choice" class="is-on">
+                <h1>#{msg['auth.welcome']}</h1>
+                <p class="sub">#{msg['auth.welcome.sub']}</p>
+                <div class="gs-choice">
+                    <button type="button" class="gs-choice__opt" onclick="gsAuthStep('login')">
+                        <span class="gs-choice__ic"><i class="pi pi-sign-in"></i></span>
+                        <span class="gs-choice__txt">
+                            <strong>#{msg['auth.choice.login']}</strong>
+                            <span>#{msg['auth.choice.login.sub']}</span>
+                        </span>
+                        <i class="pi pi-angle-right gs-choice__go"></i>
+                    </button>
+                    <a class="gs-choice__opt -accent" href="#{request.contextPath}/public/inscription.xhtml">
+                        <span class="gs-choice__ic"><i class="pi pi-user-plus"></i></span>
+                        <span class="gs-choice__txt">
+                            <strong>#{msg['auth.choice.signup']}</strong>
+                            <span>#{msg['auth.choice.signup.sub']}</span>
+                        </span>
+                        <i class="pi pi-angle-right gs-choice__go"></i>
+                    </a>
+                </div>
+                <div class="gs-auth__foot">
+                    <a href="#{request.contextPath}/public/index.xhtml"><i class="pi pi-arrow-left"></i> #{msg['login.backHome']}</a>
+                </div>
+            </div>
+
+            <!-- ============ Étape 2 : connexion ============ -->
+            <div data-panel="login">
+                <button type="button" class="gs-step__back" onclick="gsAuthStep('choice')"><i class="pi pi-arrow-left"></i> #{msg['auth.back']}</button>
+                <h1>#{msg['login.title']}</h1>
+                <p class="sub">#{msg['login.subtitle']}</p>
+
+                <h:panelGroup layout="block" styleClass="gs-alert -err" rendered="#{not empty param.error}">#{msg['login.error']}</h:panelGroup>
+                <h:panelGroup layout="block" styleClass="gs-alert -warn" rendered="#{not empty param.attente}">#{msg['login.attente']}</h:panelGroup>
+                <h:panelGroup layout="block" styleClass="gs-alert -ok" rendered="#{not empty param.deconnexion}">#{msg['login.loggedOut']}</h:panelGroup>
+                <h:panelGroup layout="block" styleClass="gs-alert -ok" rendered="#{not empty param.expired}">#{msg['login.expired']}</h:panelGroup>
+
+                <form method="post" action="#{request.contextPath}/do-login">
+                    <div class="gs-field">
+                        <label for="username">#{msg['login.username']}</label>
+                        <input id="username" name="username" type="text" autocomplete="username" required="required"/>
+                    </div>
+                    <div class="gs-field">
+                        <label for="password">#{msg['login.password']}</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required="required"/>
+                    </div>
+                    <label class="gs-check">
+                        <input type="checkbox" name="remember-me" value="true"/> #{msg['login.rememberMe']}
+                    </label>
+                    <button type="submit" class="gs-btn -dark" style="width:100%; justify-content:center">
+                        <i class="pi pi-sign-in"></i> #{msg['login.submit']}
+                    </button>
+                </form>
+
+                <div class="gs-auth__foot">
+                    <span>#{msg['login.noAccount']}</span>
+                    <a href="#{request.contextPath}/public/inscription.xhtml">#{msg['nav.inscription']}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //<![CDATA[
+        (function () {
+            var card = document.getElementById('authCard');
+            window.gsAuthStep = function (name) {
+                card.querySelectorAll('[data-panel]').forEach(function (el) {
+                    el.classList.toggle('is-on', el.getAttribute('data-panel') === name);
+                });
+                var f = card.querySelector('[data-panel].is-on input');
+                if (f) { try { f.focus(); } catch (e) {} }
+            };
+            var q = new URLSearchParams(location.search);
+            if (q.has('error') || q.has('attente') || q.has('deconnexion') || q.has('expired')) {
+                gsAuthStep('login');
+            }
+        })();
+        //]]>
+    </script>
+    <h:outputScript library="js" name="effects.js" target="body"/>
+</h:body>
+</f:view>
+</html>

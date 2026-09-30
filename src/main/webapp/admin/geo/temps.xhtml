@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/admin.xhtml">
+
+    <ui:define name="title">#{msg['temps.title']}</ui:define>
+
+    <ui:define name="content">
+        <p class="gs-page__intro">#{msg['temps.intro']}</p>
+
+        <p:tabView id="tmpTabs" dynamic="true" cache="true" styleClass="gs-sec-tabs">
+
+            <!-- ================================ Jours ================================ -->
+            <p:tab title="#{msg['temps.tab.jours']}" titleStyleClass="pi pi-calendar">
+                <h3 class="gs-tab-h">#{msg['temps.jours']}</h3>
+                <h:form id="frmJour">
+                    <p:dataTable id="tbl" var="j" value="#{tempsBean.jours}" styleClass="gs-card"
+                                 emptyMessage="#{msg['common.aucuneDonnee']}">
+                        <p:column headerText="#{msg['temps.j.numero']}" style="width:5rem">#{j.numeroJourSemaine}</p:column>
+                        <p:column headerText="#{msg['geo.f.libelle']}">#{j.libelle}</p:column>
+                        <p:column headerText="#{msg['temps.j.abr']}" style="width:6rem">#{j.abreviation}</p:column>
+                        <p:column headerText="#{msg['temps.j.weekend']}" style="width:8rem">
+                            <p:tag value="#{j.estWeekend ? msg['common.oui'] : msg['common.non']}"
+                                   severity="#{j.estWeekend ? 'warning' : 'secondary'}"/>
+                        </p:column>
+                        <p:column headerText="#{msg['temps.j.ferie']}" style="width:8rem">
+                            <p:tag value="#{j.estFerie ? msg['common.oui'] : msg['common.non']}"
+                                   severity="#{j.estFerie ? 'danger' : 'secondary'}"/>
+                        </p:column>
+                        <p:column headerText="#{msg['common.etat']}" style="width:8rem">
+                            <p:tag value="#{j.etat ? msg['common.actif'] : msg['common.inactif']}"
+                                   severity="#{j.etat ? 'success' : 'danger'}"/>
+                        </p:column>
+                        <p:column headerText="#{msg['common.actions']}" style="width:8rem">
+                            <p:commandButton icon="pi pi-pencil" styleClass="ui-button-flat" process="@this"
+                                             rendered="#{utilisateurCourant.autorise(perms.TEMPS_GERER)}"
+                                             action="#{tempsBean.editerJour(j)}" update=":tmpTabs:frmJour:dlgJour"
+                                             oncomplete="PF('dlgJour').show()"/>
+                            <p:commandButton icon="#{j.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                             process="@this" rendered="#{utilisateurCourant.autorise(perms.TEMPS_GERER)}"
+                                             action="#{tempsBean.basculerJour(j)}" update=":tmpTabs:frmJour:tbl :growl"/>
+                        </p:column>
+                    </p:dataTable>
+
+                    <p:dialog id="dlgJour" widgetVar="dlgJour" modal="true" resizable="false" width="480" responsive="true"
+                              header="#{msg['temps.jour.edition']}">
+                        <p:messages showDetail="true" closable="true"/>
+                        <div class="gs-form-grid">
+                            <div class="gs-field-v gs-col-2">
+                                <label>#{msg['geo.f.libelle']}</label>
+                                <p:inputText value="#{tempsBean.jour.libelle}" required="true" maxlength="20"/>
+                            </div>
+                            <div class="gs-field-v">
+                                <label>#{msg['temps.j.abr']}</label>
+                                <p:inputText value="#{tempsBean.jour.abreviation}" maxlength="5"/>
+                            </div>
+                            <div class="gs-field-v">
+                                <label>#{msg['temps.j.numero']}</label>
+                                <p:spinner value="#{tempsBean.jour.numeroJourSemaine}" min="1" max="7"/>
+                            </div>
+                            <div class="gs-field-v">
+                                <p:selectBooleanCheckbox value="#{tempsBean.jour.estWeekend}" itemLabel="#{msg['temps.j.weekend']}"/>
+                            </div>
+                            <div class="gs-field-v">
+                                <p:selectBooleanCheckbox value="#{tempsBean.jour.estFerie}" itemLabel="#{msg['temps.j.ferie']}"/>
+                            </div>
+                        </div>
+                        <f:facet name="footer">
+                            <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                             onclick="PF('dlgJour').hide()"/>
+                            <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                             action="#{tempsBean.enregistrerJour}" process=":tmpTabs:frmJour:dlgJour"
+                                             update=":tmpTabs:frmJour:tbl :tmpTabs:frmJour:dlgJour :growl"
+                                             oncomplete="if (args &amp;&amp; args.ok) PF('dlgJour').hide()"/>
+                        </f:facet>
+                    </p:dialog>
+                </h:form>
+            </p:tab>
+
+            <!-- =============================== Années =============================== -->
+            <p:tab title="#{msg['temps.tab.annees']}" titleStyleClass="pi pi-clock">
+                <h3 class="gs-tab-h">#{msg['temps.annees']}</h3>
+                <h:form id="frmAnnee">
+                    <ui:fragment rendered="#{utilisateurCourant.autorise(perms.TEMPS_GERER)}">
+                        <div class="gs-page__head">
+                            <span class="gs-spacer"></span>
+                            <p:spinner value="#{tempsBean.nouvelleAnnee}" min="1900" max="2200" size="5"/>
+                            <p:commandButton value="#{msg['temps.annee.creer']}" icon="pi pi-plus"
+                                             action="#{tempsBean.creerAnnee}" process="@form"
+                                             update=":tmpTabs:frmAnnee:tbl :growl"/>
+                        </div>
+                    </ui:fragment>
+
+                    <p:dataTable id="tbl" var="a" value="#{tempsBean.annees}" styleClass="gs-card"
+                                 emptyMessage="#{msg['common.aucuneDonnee']}">
+                        <p:column headerText="#{msg['temps.a.valeur']}" style="width:7rem">#{a.valeurAnnee}</p:column>
+                        <p:column headerText="#{msg['temps.a.bissextile']}" style="width:9rem">
+                            <p:tag value="#{a.estBissextile ? msg['common.oui'] : msg['common.non']}"
+                                   severity="#{a.estBissextile ? 'info' : 'secondary'}"/>
+                        </p:column>
+                        <p:column headerText="#{msg['temps.a.debut']}">
+                            <h:outputText value="#{a.dateDebut}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
+                        </p:column>
+                        <p:column headerText="#{msg['temps.a.fin']}">
+                            <h:outputText value="#{a.dateFin}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
+                        </p:column>
+                        <p:column headerText="#{msg['temps.a.mois']}" style="width:6rem">#{a.nbMois}</p:column>
+                        <p:column headerText="#{msg['common.etat']}" style="width:8rem">
+                            <p:tag value="#{a.etat ? msg['common.actif'] : msg['common.inactif']}"
+                                   severity="#{a.etat ? 'success' : 'danger'}"/>
+                        </p:column>
+                        <p:column headerText="#{msg['common.actions']}" style="width:9rem">
+                            <p:commandButton icon="pi pi-calendar" title="#{msg['temps.a.voirMois']}" styleClass="ui-button-flat"
+                                             process="@this" action="#{tempsBean.voirMois(a)}"
+                                             update=":tmpTabs:frmAnnee:dlgMois" oncomplete="PF('dlgMois').show()"/>
+                            <p:commandButton icon="#{a.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                             process="@this" rendered="#{utilisateurCourant.autorise(perms.TEMPS_GERER)}"
+                                             action="#{tempsBean.basculerAnnee(a)}" update=":tmpTabs:frmAnnee:tbl :growl"/>
+                        </p:column>
+                    </p:dataTable>
+
+                    <p:dialog id="dlgMois" widgetVar="dlgMois" modal="true" resizable="false" width="620" responsive="true"
+                              header="#{msg['temps.mois.titre']} #{tempsBean.anneeSelection.valeurAnnee}">
+                        <p:dataTable var="m" value="#{tempsBean.moisSelection}" styleClass="gs-card"
+                                     emptyMessage="#{msg['common.aucuneDonnee']}">
+                            <p:column headerText="#{msg['temps.m.numero']}" style="width:4rem">#{m.numeroMois}</p:column>
+                            <p:column headerText="#{msg['geo.f.libelle']}">#{m.libelle}</p:column>
+                            <p:column headerText="#{msg['temps.m.jours']}" style="width:6rem">#{m.nombreJours}</p:column>
+                            <p:column headerText="#{msg['common.etat']}" style="width:7rem">
+                                <p:tag value="#{m.etat ? msg['common.actif'] : msg['common.inactif']}"
+                                       severity="#{m.etat ? 'success' : 'danger'}"/>
+                            </p:column>
+                            <p:column headerText="#{msg['common.actions']}" style="width:6rem">
+                                <p:commandButton icon="#{m.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                                 process="@this" rendered="#{utilisateurCourant.autorise(perms.TEMPS_GERER)}"
+                                                 action="#{tempsBean.basculerMois(m)}"
+                                                 update=":tmpTabs:frmAnnee:dlgMois :growl"/>
+                            </p:column>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+            </p:tab>
+
+            <!-- ================================ Mois ================================ -->
+            <p:tab title="#{msg['temps.tab.mois']}" titleStyleClass="pi pi-calendar-times">
+                <h3 class="gs-tab-h">#{msg['temps.mois']}</h3>
+                <h:form id="frmMois">
+                    <div class="gs-page__head">
+                        <label style="font-weight:600;color:var(--gs-text)">#{msg['temps.a.valeur']}</label>
+                        <p:selectOneMenu value="#{tempsBean.moisAnneeId}" filter="true">
+                            <f:selectItems value="#{tempsBean.annees}" var="y"
+                                           itemLabel="#{y.valeurAnnee}#{y.estBissextile ? ' (bissextile)' : ''}" itemValue="#{y.id}"/>
+                            <p:ajax listener="#{tempsBean.chargerMoisAnnee}" update=":tmpTabs:frmMois:tbl"/>
+                        </p:selectOneMenu>
+                    </div>
+
+                    <p:dataTable id="tbl" var="m" value="#{tempsBean.moisAnnee}" styleClass="gs-card"
+                                 emptyMessage="#{msg['common.aucuneDonnee']}">
+                        <p:column headerText="#{msg['temps.m.numero']}" style="width:5rem">#{m.numeroMois}</p:column>
+                        <p:column headerText="#{msg['geo.f.libelle']}">#{m.libelle}</p:column>
+                        <p:column headerText="#{msg['temps.j.abr']}" style="width:6rem">#{m.abreviation}</p:column>
+                        <p:column headerText="#{msg['temps.m.jours']}" style="width:6rem">#{m.nombreJours}</p:column>
+                        <p:column headerText="#{msg['common.etat']}" style="width:8rem">
+                            <p:tag value="#{m.etat ? msg['common.actif'] : msg['common.inactif']}"
+                                   severity="#{m.etat ? 'success' : 'danger'}"/>
+                        </p:column>
+                        <p:column headerText="#{msg['common.actions']}" style="width:8rem">
+                            <p:commandButton icon="pi pi-pencil" styleClass="ui-button-flat" process="@this"
+                                             rendered="#{utilisateurCourant.autorise(perms.TEMPS_GERER)}"
+                                             action="#{tempsBean.editerMois(m)}" update=":tmpTabs:frmMois:dlgM"
+                                             oncomplete="PF('dlgM').show()"/>
+                            <p:commandButton icon="#{m.etat ? 'pi pi-ban' : 'pi pi-check'}" styleClass="ui-button-flat"
+                                             process="@this" rendered="#{utilisateurCourant.autorise(perms.TEMPS_GERER)}"
+                                             action="#{tempsBean.basculerMoisTab(m)}" update=":tmpTabs:frmMois:tbl :growl"/>
+                        </p:column>
+                    </p:dataTable>
+
+                    <p:dialog id="dlgM" widgetVar="dlgM" modal="true" resizable="false" width="440" responsive="true"
+                              header="#{msg['temps.mois.edition']}">
+                        <p:messages showDetail="true" closable="true"/>
+                        <div class="gs-form-grid">
+                            <div class="gs-field-v gs-col-2">
+                                <label>#{msg['geo.f.libelle']}</label>
+                                <p:inputText value="#{tempsBean.moisSel.libelle}" required="true" maxlength="20"/>
+                            </div>
+                            <div class="gs-field-v">
+                                <label>#{msg['temps.j.abr']}</label>
+                                <p:inputText value="#{tempsBean.moisSel.abreviation}" maxlength="5"/>
+                            </div>
+                            <div class="gs-field-v">
+                                <label>#{msg['temps.m.jours']}</label>
+                                <p:inputText value="#{tempsBean.moisSel.nombreJours}" disabled="true"/>
+                            </div>
+                        </div>
+                        <f:facet name="footer">
+                            <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                             onclick="PF('dlgM').hide()"/>
+                            <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                             action="#{tempsBean.enregistrerMois}" process=":tmpTabs:frmMois:dlgM"
+                                             update=":tmpTabs:frmMois:tbl :tmpTabs:frmMois:dlgM :growl"
+                                             oncomplete="if (args &amp;&amp; args.ok) PF('dlgM').hide()"/>
+                        </f:facet>
+                    </p:dialog>
+                </h:form>
+            </p:tab>
+        </p:tabView>
+    </ui:define>
+</ui:composition>

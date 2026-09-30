@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/layout.xhtml">
+
+    <ui:define name="title">#{empty vitrineBean.detail ? msg['vitrine.service.title'] : vitrineBean.detail.service.libelle} — #{msg['app.name']}</ui:define>
+
+    <ui:define name="head">
+        <link rel="stylesheet" type="text/css" href="#{resource['css/vitrine.css']}"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js"></script>
+        <script src="#{resource['js/geo.js']}"></script>
+    </ui:define>
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="id" value="#{vitrineBean.serviceId}"/>
+            <f:viewParam name="id" value="#{commandeVitrineBean.serviceId}"/>
+            <f:viewAction action="#{vitrineBean.chargerService}"/>
+            <f:viewAction action="#{commandeVitrineBean.charger}"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <h:panelGroup rendered="#{empty vitrineBean.detail}" layout="block" styleClass="gs-container gs-vitrine-body">
+            <div class="gs-empty">
+                <i class="pi pi-exclamation-circle"></i>
+                <p>#{msg['vitrine.service.introuvable']}</p>
+                <h:link outcome="/public/catalogue" styleClass="gs-btn">#{msg['vitrine.retourCatalogue']}</h:link>
+            </div>
+        </h:panelGroup>
+
+        <ui:fragment rendered="#{not empty vitrineBean.detail}">
+        <h:panelGroup layout="block">
+
+            <section class="gs-vitrine-hero -service"
+                     style="background-image:linear-gradient(120deg, rgba(17,24,39,.86), rgba(31,58,95,.74)), url('#{resource['media/carousel/cafe-discovery.jpg']}')">
+                <div class="gs-container">
+                    <h:link outcome="/public/catalogue" styleClass="gs-back"><i class="pi pi-arrow-left"></i> #{msg['vitrine.retourCatalogue']}</h:link>
+
+                    <ui:fragment rendered="#{vitrineBean.connecte}">
+                        <h:form id="favForm" prependId="false" styleClass="gs-fav-form">
+                            <p:commandLink styleClass="gs-fav-btn #{vitrineBean.favori ? 'is-on' : ''}"
+                                           process="@this" action="#{vitrineBean.basculerFavori}"
+                                           update="@this :growlPub"
+                                           title="#{msg['vitrine.favori.basculer']}">
+                                <i class="#{vitrineBean.favori ? 'pi pi-heart-fill' : 'pi pi-heart'}"></i>
+                            </p:commandLink>
+                        </h:form>
+                    </ui:fragment>
+                    <ui:fragment rendered="#{not vitrineBean.connecte}">
+                        <h:link outcome="/admin/index" styleClass="gs-fav-form gs-fav-btn" title="#{msg['vitrine.favori.connexion']}">
+                            <i class="pi pi-heart"></i>
+                        </h:link>
+                    </ui:fragment>
+
+                    <p class="gs-eyebrow">#{vitrineBean.detail.service.categorieLibelle}</p>
+                    <h1>#{vitrineBean.detail.service.libelle}</h1>
+                    <p class="gs-service-hero__rating">
+                        <span class="gs-stars" data-note="#{vitrineBean.detail.synthese.moyenne}">★★★★★</span>
+                        <strong data-countup="#{vitrineBean.detail.synthese.moyenne}" data-decimals="1">0</strong>
+                        <span>· <span data-countup="#{vitrineBean.detail.synthese.total}" data-decimals="0">0</span> #{msg['vitrine.avis']}</span>
+                        <span class="gs-badge #{vitrineBean.detail.service.disponible ? '-ok' : '-off'}">
+                            #{vitrineBean.detail.service.disponible ? msg['vitrine.ouvert'] : msg['vitrine.ferme']}
+                        </span>
+                    </p>
+                    <p class="gs-lead">#{vitrineBean.detail.service.description}</p>
+                </div>
+            </section>
+
+            <div class="gs-container gs-vitrine-body gs-service-layout">
+
+                <!-- ================= Colonne principale ================= -->
+                <div class="gs-service-main">
+
+                    <ui:repeat value="#{vitrineBean.detail.catalogues}" var="cat">
+                        <section class="gs-vcard" data-aos="fade-up">
+                            <h2><i class="#{cat.icone}"></i> #{cat.libelle}</h2>
+                            <ui:fragment rendered="#{not empty cat.description}">
+                                <p class="gs-hint">#{cat.description}</p>
+                            </ui:fragment>
+                            <ui:repeat value="#{cat.produits}" var="prod">
+                                <div class="gs-produit">
+                                    <ui:fragment rendered="#{not empty prod.image}">
+                                        <img class="gs-produit__img" src="#{resource[prod.image]}" alt="#{prod.libelle}" loading="lazy"/>
+                                    </ui:fragment>
+                                    <div class="gs-produit__body">
+                                    <div class="gs-produit__head">
+                                        <h3>#{prod.libelle}</h3>
+                                        <ui:fragment rendered="#{prod.nombreAvis gt 0}">
+                                            <span class="gs-stars">#{vitrineBean.etoiles(prod.noteMoyenne)} <small>(#{prod.nombreAvis})</small></span>
+                                        </ui:fragment>
+                                    </div>
+                                    <p class="gs-produit__desc">#{prod.description}</p>
+                                    <ul class="gs-articles">
+                                        <ui:repeat value="#{prod.articles}" var="art">
+                                            <li class="#{art.disponibilite ? '' : '-indispo'}">
+                                                <span class="gs-articles__ref">#{art.reference}</span>
+                                                <span class="gs-articles__desc">#{art.description}</span>
+                                                <span class="gs-articles__prix">
+                                                    <ui:fragment rendered="#{art.promotion}">
+                                                        <del><h:outputText value="#{art.prix}"><f:convertNumber maxFractionDigits="0"/></h:outputText></del>
+                                                        <strong><h:outputText value="#{art.prixNet}"><f:convertNumber maxFractionDigits="0"/></h:outputText> #{art.devise}</strong>
+                                                        <span class="gs-promo">-#{art.tauxRemisePourcentage}%</span>
+                                                    </ui:fragment>
+                                                    <ui:fragment rendered="#{not art.promotion}">
+                                                        <strong><h:outputText value="#{art.prix}"><f:convertNumber maxFractionDigits="0"/></h:outputText> #{art.devise}</strong>
+                                                    </ui:fragment>
+                                                </span>
+                                            </li>
+                                        </ui:repeat>
+                                    </ul>
+                                    </div>
+                                </div>
+                            </ui:repeat>
+                        </section>
+                    </ui:repeat>
+
+                    <!-- ================= Commande à distance ================= -->
+                    <ui:fragment rendered="#{vitrineBean.detail.service.commandeADistance}">
+                        <section class="gs-vcard gs-commande" id="commander" data-aos="fade-up">
+                            <h2><i class="pi pi-shopping-cart"></i> #{msg['commande.vitrine.titre']}</h2>
+
+                            <ui:fragment rendered="#{not commandeVitrineBean.connecte}">
+                                <p class="gs-avis-cta">
+                                    <i class="pi pi-info-circle"></i> #{msg['commande.vitrine.connexion']}
+                                    <h:link outcome="/public/inscription" value="#{msg['nav.inscription']}"/>
+                                    &#160;·&#160;
+                                    <h:link outcome="/admin/index" value="#{msg['nav.login']}"/>
+                                </p>
+                            </ui:fragment>
+
+                            <ui:fragment rendered="#{commandeVitrineBean.connecte and commandeVitrineBean.commandePassee}">
+                                <p class="gs-commande__ok">
+                                    <i class="pi pi-check-circle"></i>
+                                    #{msg['commande.vitrine.merci']} <strong>#{commandeVitrineBean.referenceCommande}</strong>
+                                </p>
+                            </ui:fragment>
+
+                            <h:form id="cmdForm" prependId="false"
+                                    rendered="#{commandeVitrineBean.connecte and not commandeVitrineBean.commandePassee}">
+                                <p:messages showDetail="true" closable="true"/>
+                                <ui:fragment rendered="#{empty commandeVitrineBean.articles}">
+                                    <p class="gs-hint">#{msg['commande.vitrine.aucunArticle']}</p>
+                                </ui:fragment>
+
+                                <ul class="gs-commande__lignes">
+                                    <ui:repeat value="#{commandeVitrineBean.articles}" var="art">
+                                        <li>
+                                            <span class="gs-commande__desc">
+                                                <strong>#{art.reference}</strong> — #{art.description}
+                                            </span>
+                                            <span class="gs-commande__prix">
+                                                <h:outputText value="#{art.prixNet}"><f:convertNumber maxFractionDigits="0"/></h:outputText>
+                                                #{art.devise}
+                                            </span>
+                                            <p:inputNumber value="#{commandeVitrineBean.quantites[art.id]}" decimalPlaces="0"
+                                                           minValue="0" maxValue="99" size="3" styleClass="gs-commande__qte"/>
+                                        </li>
+                                    </ui:repeat>
+                                </ul>
+
+                                <div class="gs-form-grid" style="margin-top:12px">
+                                    <div class="gs-field-v gs-col-2">
+                                        <label>#{msg['commande.f.livraison']}</label>
+                                        <p:inputText value="#{commandeVitrineBean.adresseLivraison}" maxlength="255"
+                                                     placeholder="#{msg['commande.vitrine.livraisonAide']}"/>
+                                    </div>
+                                    <div class="gs-field-v">
+                                        <label>#{msg['commande.f.contact']}</label>
+                                        <p:inputText value="#{commandeVitrineBean.telephoneContact}" maxlength="30"/>
+                                    </div>
+                                    <div class="gs-field-v gs-col-2">
+                                        <label>#{msg['commande.vitrine.note']}</label>
+                                        <p:inputTextarea value="#{commandeVitrineBean.commentaire}" rows="2" maxlength="1000"
+                                                         autoResize="false"/>
+                                    </div>
+                                </div>
+
+                                <div class="gs-commande__foot">
+                                    <span class="gs-commande__total">
+                                        #{msg['commande.f.total']} :
+                                        <h:outputText value="#{commandeVitrineBean.totalEstime}"><f:convertNumber maxFractionDigits="0"/></h:outputText> XOF
+                                    </span>
+                                    <p:commandButton value="#{msg['commande.vitrine.valider']}" icon="pi pi-send"
+                                                     styleClass="gs-btn" action="#{commandeVitrineBean.commander}"
+                                                     update="@form :growlPub"/>
+                                </div>
+                                <p class="gs-hint">#{msg['commande.vitrine.suivi']}</p>
+                            </h:form>
+                        </section>
+                    </ui:fragment>
+
+                    <!-- ================= Avis ================= -->
+                    <section class="gs-vcard" id="avis" data-aos="fade-up">
+                        <h2><i class="pi pi-comments"></i> #{msg['vitrine.avis']} (#{vitrineBean.detail.synthese.total})</h2>
+
+                        <ui:fragment rendered="#{vitrineBean.detail.synthese.total gt 0}">
+                            <div class="gs-avis-synthese" data-aos="zoom-in">
+                                <div class="gs-avis-synthese__note">
+                                    <strong data-countup="#{vitrineBean.detail.synthese.moyenne}" data-decimals="1">0</strong>
+                                    <span class="gs-stars" data-note="#{vitrineBean.detail.synthese.moyenne}">★★★★★</span>
+                                </div>
+                                <div class="gs-avis-synthese__bars">
+                                    <ui:repeat value="#{vitrineBean.notesDesc}" var="n">
+                                        <div class="gs-avis-bar">
+                                            <span>#{n} ★</span>
+                                            <span class="gs-avis-bar__track">
+                                                <span class="gs-avis-bar__fill" data-bar="#{vitrineBean.pourcentage(n)}" style="width:0"></span>
+                                            </span>
+                                            <span>#{vitrineBean.repartition(n)}</span>
+                                        </div>
+                                    </ui:repeat>
+                                </div>
+                            </div>
+                        </ui:fragment>
+
+                        <h:form id="avisForm" prependId="false" styleClass="gs-avis-form"
+                                rendered="#{vitrineBean.peutDeposer}">
+                            <h3>#{msg['vitrine.avis.laisser']}</h3>
+                            <p:messages showDetail="true" closable="true"/>
+                            <div class="gs-avis-form__row">
+                                <p:rating value="#{vitrineBean.maNote}" stars="5" cancel="false"/>
+                                <p:inputTextarea value="#{vitrineBean.monCommentaire}" rows="2" maxlength="2000"
+                                                 placeholder="#{msg['vitrine.avis.placeholder']}" autoResize="false"/>
+                            </div>
+                            <p:commandButton value="#{msg['vitrine.avis.publier']}" icon="pi pi-send"
+                                             action="#{vitrineBean.deposerAvis}" update="@form :contenuAvis :growlPub"
+                                             styleClass="gs-btn"/>
+                            <p class="gs-hint">#{msg['vitrine.avis.moderation']}</p>
+                        </h:form>
+
+                        <ui:fragment rendered="#{not vitrineBean.connecte}">
+                            <p class="gs-avis-cta">
+                                <i class="pi pi-info-circle"></i>
+                                #{msg['vitrine.avis.connexion']}
+                                <h:link outcome="/public/inscription" value="#{msg['nav.inscription']}"/>
+                                &#160;·&#160;
+                                <h:link outcome="/admin/index" value="#{msg['nav.login']}"/>
+                            </p>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{vitrineBean.connecte and vitrineBean.monAvis ne null}">
+                            <p class="gs-avis-cta"><i class="pi pi-check-circle"></i> #{msg['vitrine.avis.deja']}</p>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{vitrineBean.proprietaire}">
+                            <p class="gs-avis-cta -owner"><i class="pi pi-briefcase"></i> #{msg['vitrine.avis.proprio']}</p>
+                        </ui:fragment>
+
+                        <h:form id="avisListe" prependId="false">
+                            <p:messages showDetail="true" closable="true" globalOnly="false"/>
+                            <h:panelGroup id="contenuAvis" layout="block" styleClass="gs-avis-liste">
+                                <ui:fragment rendered="#{empty vitrineBean.detail.avis}">
+                                    <div class="gs-empty -mini"><p>#{msg['vitrine.avis.aucun']}</p></div>
+                                </ui:fragment>
+                                <ui:repeat value="#{vitrineBean.detail.avis}" var="av" varStatus="avs">
+                                    <article class="gs-avis" data-aos="fade-up" data-aos-delay="#{(avs.index % 8) * 55}">
+                                        <div class="gs-avis__head">
+                                            <span class="gs-avis__auteur">#{av.personneNom}</span>
+                                            <span class="gs-stars" data-note="#{av.note}">★★★★★</span>
+                                            <span class="gs-avis__date">
+                                                <h:outputText value="#{av.date}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
+                                            </span>
+                                        </div>
+                                        <p class="gs-avis__texte">#{av.commentaire}</p>
+                                        <ui:fragment rendered="#{not empty av.reponsePrestataire and not vitrineBean.proprietaire}">
+                                            <div class="gs-avis__reponse">
+                                                <strong><i class="pi pi-reply"></i> #{msg['vitrine.avis.reponse']}</strong>
+                                                <p>#{av.reponsePrestataire}</p>
+                                            </div>
+                                        </ui:fragment>
+                                        <ui:fragment rendered="#{vitrineBean.proprietaire}">
+                                            <div class="gs-avis__reponse -edit">
+                                                <strong><i class="pi pi-reply"></i> #{msg['vitrine.avis.votreReponse']}</strong>
+                                                <p:inputTextarea value="#{vitrineBean.reponses[av.id]}" rows="2" maxlength="2000"
+                                                                 style="width:100%" autoResize="false"
+                                                                 placeholder="#{msg['vitrine.avis.reponsePlaceholder']}"/>
+                                                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                                                 styleClass="gs-btn -sm" process="@form"
+                                                                 action="#{vitrineBean.repondre(av.id)}"
+                                                                 update=":contenuAvis :growlPub"/>
+                                            </div>
+                                        </ui:fragment>
+                                    </article>
+                                </ui:repeat>
+                            </h:panelGroup>
+                        </h:form>
+                    </section>
+                </div>
+
+                <!-- ================= Colonne latérale : prestataire ================= -->
+                <aside class="gs-service-aside">
+                    <div class="gs-vcard gs-presta" data-aos="fade-left">
+                        <h2><i class="pi pi-id-card"></i> #{msg['vitrine.presta.titre']}</h2>
+                        <ui:fragment rendered="#{empty vitrineBean.detail.prestataire}">
+                            <p class="gs-hint">#{msg['vitrine.presta.aucune']}</p>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{not empty vitrineBean.detail.prestataire}">
+                            <ul class="gs-presta__list">
+                                <ui:fragment rendered="#{not empty vitrineBean.detail.prestataire.adresse}">
+                                    <li><i class="pi pi-map-marker"></i> #{vitrineBean.detail.prestataire.adresse}</li>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not empty vitrineBean.detail.prestataire.telephone1}">
+                                    <li><i class="pi pi-phone"></i> #{vitrineBean.detail.prestataire.telephone1}</li>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not empty vitrineBean.detail.prestataire.email1}">
+                                    <li><i class="pi pi-envelope"></i> #{vitrineBean.detail.prestataire.email1}</li>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not empty vitrineBean.detail.prestataire.siteWeb}">
+                                    <li><i class="pi pi-globe"></i>
+                                        <a href="#{vitrineBean.detail.prestataire.siteWeb}" target="_blank" rel="noopener">#{vitrineBean.detail.prestataire.siteWeb}</a>
+                                    </li>
+                                </ui:fragment>
+                            </ul>
+
+                            <ui:fragment rendered="#{not empty vitrineBean.detail.prestataire.latitude}">
+                                <div class="gs-presta__map" id="prestaMap"></div>
+                                <button type="button" class="gs-btn -sm gs-itineraire-btn" onclick="gsRelancerItineraire()">
+                                    <i class="pi pi-directions"></i> #{msg['vitrine.presta.itineraire']}
+                                </button>
+                                <h:outputScript>
+                                    //<![CDATA[
+                                    (function () {
+                                        var point = #{vitrineBean.prestataireJson};
+                                        window.gsRelancerItineraire = function () {
+                                            if (window.gsItineraire) { window.gsItineraire('prestaMap', point); }
+                                        };
+                                        var tries = 0;
+                                        (function boot() {
+                                            if (window.gsItineraire) { window.gsRelancerItineraire(); }
+                                            else if (tries++ < 40) { setTimeout(boot, 150); }
+                                        })();
+                                    })();
+                                    //]]>
+                                </h:outputScript>
+                            </ui:fragment>
+
+                            <h3 class="gs-presta__h">#{msg['vitrine.presta.horaires']}</h3>
+                            <ui:fragment rendered="#{not empty vitrineBean.detail.horaires}">
+                                <table class="gs-horaires">
+                                    <ui:repeat value="#{vitrineBean.detail.horaires}" var="ho">
+                                        <tr>
+                                            <th>#{ho.jourLibelle}</th>
+                                            <td>
+                                                <h:outputText value="24h/24" rendered="#{ho.ouvert24h}"/>
+                                                <h:outputText value="#{ho.heureOuverture} – #{ho.heureFermeture}" rendered="#{not ho.ouvert24h}"/>
+                                                <h:outputText value=" (#{ho.pauseDejeunerDebut}–#{ho.pauseDejeunerFin})"
+                                                              styleClass="gs-hint" rendered="#{not empty ho.pauseDejeunerDebut}"/>
+                                            </td>
+                                        </tr>
+                                    </ui:repeat>
+                                </table>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{empty vitrineBean.detail.horaires}">
+                                <p class="gs-hint">#{msg['vitrine.presta.horairesAucun']}</p>
+                            </ui:fragment>
+
+                            <div class="gs-report">
+                                <ui:fragment rendered="#{vitrineBean.connecte and not vitrineBean.proprietaire}">
+                                    <p:commandLink styleClass="gs-report-link" process="@this"
+                                                   oncomplete="PF('dlgSignal').show()">
+                                        <i class="pi pi-flag"></i> #{msg['vitrine.signaler']}
+                                    </p:commandLink>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not vitrineBean.connecte}">
+                                    <h:link outcome="/admin/index" styleClass="gs-report-link">
+                                        <i class="pi pi-flag"></i> #{msg['vitrine.signaler']}
+                                    </h:link>
+                                </ui:fragment>
+                            </div>
+                        </ui:fragment>
+                    </div>
+                </aside>
+            </div>
+        </h:panelGroup>
+        </ui:fragment>
+
+        <p:growl id="growlPub" showDetail="true" life="5000"/>
+
+        <ui:fragment rendered="#{not empty vitrineBean.detail}">
+            <h:form id="frmSignal" prependId="false">
+                <p:dialog id="dlgSignal" widgetVar="dlgSignal" modal="true" resizable="false" width="460" responsive="true"
+                          header="#{msg['vitrine.signaler.titre']}">
+                  <h:panelGroup id="signalContent" layout="block">
+                    <p:messages showDetail="true" closable="true"/>
+                    <ui:fragment rendered="#{not vitrineBean.signalementEnvoye}">
+                        <p class="gs-hint" style="margin:0 0 12px">#{msg['vitrine.signaler.aide']}</p>
+                        <div class="gs-field-v" style="margin-bottom:12px">
+                            <label>#{msg['vitrine.signaler.motif']}</label>
+                            <p:selectOneMenu value="#{vitrineBean.motifSignalement}" required="true" style="width:100%">
+                                <f:selectItem itemLabel="—" itemValue="#{null}" noSelectionOption="true"/>
+                                <f:selectItems value="#{vitrineBean.motifsSignalement}" var="m"
+                                               itemLabel="#{msg['vitrine.signaler.motif.'.concat(m)]}" itemValue="#{m}"/>
+                            </p:selectOneMenu>
+                        </div>
+                        <div class="gs-field-v">
+                            <label>#{msg['vitrine.signaler.description']}</label>
+                            <p:inputTextarea value="#{vitrineBean.descriptionSignalement}" rows="3" maxlength="1000"
+                                             style="width:100%" autoResize="false"/>
+                        </div>
+                    </ui:fragment>
+                    <ui:fragment rendered="#{vitrineBean.signalementEnvoye}">
+                        <p class="gs-avis-cta"><i class="pi pi-check-circle"></i> #{msg['vitrine.signaler.merci']}</p>
+                    </ui:fragment>
+                  </h:panelGroup>
+                    <f:facet name="footer">
+                        <p:commandButton value="#{msg['action.fermer']}" type="button" styleClass="ui-button-flat"
+                                         onclick="PF('dlgSignal').hide()"/>
+                        <p:commandButton value="#{msg['vitrine.signaler.envoyer']}" icon="pi pi-flag"
+                                         rendered="#{not vitrineBean.signalementEnvoye}"
+                                         action="#{vitrineBean.signaler}" process="@form" update="signalContent"
+                                         styleClass="gs-btn -sm"/>
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+        </ui:fragment>
+    </ui:define>
+
+    <ui:define name="scripts">
+        <h:outputScript library="js" name="vitrine.js" target="body"/>
+    </ui:define>
+</ui:composition>

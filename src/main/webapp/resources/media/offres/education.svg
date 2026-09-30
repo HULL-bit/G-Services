@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300" role="img"><title>Éducation &amp; formation</title><rect width="480" height="300" rx="18" fill="#F1F5F9"/><rect width="480" height="300" rx="18" fill="url(#g)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1F3A5F" stop-opacity=".14"/><stop offset="1" stop-color="#C9A227" stop-opacity=".22"/></linearGradient></defs>
+<path d="M240 108l120 46-120 46-120-46z" fill="#fff" stroke="#1F3A5F" stroke-width="6" stroke-linejoin="round"/>
+<path d="M300 178v46c0 16-27 28-60 28s-60-12-60-28v-46" fill="none" stroke="#1F3A5F" stroke-width="6"/>
+<path d="M360 154v56" stroke="#C9A227" stroke-width="8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:p="primefaces"
+      lang="#{localeBean.language}">
+<f:view locale="#{localeBean.locale}" contentType="text/html" encoding="UTF-8">
+<h:head>
+    <f:facet name="first">
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="theme-color" content="#1F3A5F"/>
+        <script>
+            (function () {
+                try {
+                    var t = localStorage.getItem('gs-theme');
+                    if (t !== 'dark' &amp;&amp; t !== 'light') {
+                        t = window.matchMedia &amp;&amp; window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                    }
+                    document.documentElement.setAttribute('data-theme', t);
+                } catch (e) {}
+            })();
+        </script>
+    </f:facet>
+    <title><ui:insert name="title">Administration</ui:insert> — #{msg['app.name']}</title>
+    <link rel="icon" type="image/svg+xml" href="#{resource['media/logo/favicon.svg']}"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Poppins:wght@600;700&amp;display=swap"/>
+    <h:outputStylesheet library="primefaces" name="primeicons/primeicons.css"/>
+
+    <!-- facet "last" : &lt;link&gt; bruts rendus APRÈS components.css de PrimeFaces,
+         pour que nos surcharges gagnent la cascade sans !important. -->
+    <f:facet name="last">
+        <link rel="stylesheet" type="text/css" href="#{resource['css/theme.css']}"/>
+        <link rel="stylesheet" type="text/css" href="#{resource['css/animations.css']}"/>
+        <link rel="stylesheet" type="text/css" href="#{resource['css/dark.css']}"/>
+        <link rel="stylesheet" type="text/css" href="#{resource['css/admin.css']}"/>
+        <ui:insert name="head"/>
+    </f:facet>
+</h:head>
+
+<h:body styleClass="gs-admin">
+
+    <!-- ================= Menu latéral (dynamique : BranchePermission) ================= -->
+    <aside class="gs-side" id="gs-side">
+        <a class="gs-side__logo" href="#{request.contextPath}/admin/index.xhtml">
+            <h:graphicImage name="media/logo/gservices-logo-light.svg" alt="#{msg['app.name']}"/>
+        </a>
+
+        <nav class="gs-side__nav">
+            <ui:repeat value="#{menuBean.sections}" var="section">
+                <!-- Section à entrée unique : le titre EST le lien -->
+                <ui:fragment rendered="#{section.entrees.size() eq 1}">
+                    <a class="gs-side__link -lone #{menuBean.actif(section.entrees[0].url) ? 'is-active' : ''}"
+                       href="#{request.contextPath}#{section.entrees[0].url}">
+                        <i class="#{section.icone}"></i> #{section.libelle}
+                    </a>
+                </ui:fragment>
+                <!-- Section multi-entrées : titre + sous-liens -->
+                <ui:fragment rendered="#{section.entrees.size() gt 1}">
+                    <div class="gs-side__section">
+                        <div class="gs-side__title">
+                            <i class="#{section.icone}"></i> #{section.libelle}
+                            <span class="gs-side__badge">#{section.entrees.size()}</span>
+                        </div>
+                        <ui:repeat value="#{section.entrees}" var="entree">
+                            <a class="gs-side__link #{menuBean.actif(entree.url) ? 'is-active' : ''}"
+                               href="#{request.contextPath}#{entree.url}">
+                                <i class="#{entree.icone}"></i> #{entree.libelle}
+                            </a>
+                        </ui:repeat>
+                    </div>
+                </ui:fragment>
+            </ui:repeat>
+        </nav>
+
+        <div class="gs-side__foot">
+            <a href="#{request.contextPath}/public/index.xhtml"><i class="pi pi-external-link"></i> #{msg['login.backHome']}</a>
+        </div>
+    </aside>
+
+    <!-- ================= Zone principale ================= -->
+    <div class="gs-admin__main">
+        <header class="gs-topbar">
+            <button type="button" class="gs-side__toggle"
+                    onclick="document.body.classList.toggle('-menu-open')" aria-label="Menu">
+                <i class="pi pi-bars"></i>
+            </button>
+            <span class="gs-topbar__title"><ui:insert name="title">Administration</ui:insert></span>
+            <span class="gs-topbar__spacer"></span>
+
+            <h:form styleClass="gs-lang" prependId="false" style="display:flex;gap:2px">
+                <h:commandLink value="FR" immediate="true"
+                               styleClass="#{localeBean.active('fr') ? 'is-active' : ''}"
+                               action="#{localeBean.changeLanguage('fr')}"/>
+                <h:commandLink value="EN" immediate="true"
+                               styleClass="#{localeBean.active('en') ? 'is-active' : ''}"
+                               action="#{localeBean.changeLanguage('en')}"/>
+            </h:form>
+
+            <button type="button" id="gs-theme-toggle" class="gs-icon-btn" style="width:38px;height:38px"
+                    title="#{msg['theme.toggle']}" aria-pressed="false"><i class="pi pi-moon"></i></button>
+
+            <span class="gs-topbar__user">
+                <i class="pi pi-user-circle"></i>
+                <span>#{utilisateurCourant.nomComplet}</span>
+            </span>
+            <form method="post" action="#{request.contextPath}/do-logout">
+                <button type="submit" class="gs-logout-btn"><i class="pi pi-sign-out"></i> #{msg['admin.logout']}</button>
+            </form>
+        </header>
+
+        <main class="gs-admin__content">
+            <ui:insert name="content"/>
+        </main>
+    </div>
+
+    <p:growl id="growl" showDetail="true" life="4500" position="top-right" redisplay="false" keepAlive="false"/>
+    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" width="380">
+        <p:commandButton value="#{msg['action.oui']}" type="button"
+                         styleClass="ui-confirmdialog-yes" icon="pi pi-check"/>
+        <p:commandButton value="#{msg['action.non']}" type="button"
+                         styleClass="ui-confirmdialog-no ui-button-flat" icon="pi pi-times"/>
+    </p:confirmDialog>
+
+    <h:outputScript library="js" name="effects.js" target="body"/>
+</h:body>
+</f:view>
+</html>

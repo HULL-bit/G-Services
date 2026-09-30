@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces"
+                template="/template/layout.xhtml">
+
+    <ui:define name="title">#{msg['vitrine.catalogue.title']} — #{msg['app.name']}</ui:define>
+
+    <ui:define name="head">
+        <link rel="stylesheet" type="text/css" href="#{resource['css/vitrine.css']}"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+        <script src="#{resource['js/geo.js']}"></script>
+    </ui:define>
+
+    <ui:define name="content">
+
+        <section class="gs-vitrine-hero" role="banner"
+                 style="background-image:linear-gradient(120deg, rgba(17,24,39,.82), rgba(31,58,95,.72)), url('#{resource['media/backgrounds/discover-map.jpg']}')">
+            <div class="gs-container">
+                <p class="gs-eyebrow">#{msg['vitrine.catalogue.eyebrow']}</p>
+                <h1>#{msg['vitrine.catalogue.title']}</h1>
+                <p class="gs-lead">#{msg['vitrine.catalogue.lead']}</p>
+            </div>
+        </section>
+
+        <h:form id="catForm" styleClass="gs-container gs-vitrine-body" prependId="false">
+
+            <nav class="gs-cat-chips" aria-label="#{msg['vitrine.categories']}">
+                <ui:repeat value="#{vitrineBean.categories}" var="c">
+                    <p:commandLink styleClass="gs-cat-chip #{vitrineBean.categorieActive eq c.id ? 'is-active' : ''}"
+                                   process="@this" action="#{vitrineBean.selectionnerCategorie(c.id)}"
+                                   update="catList"
+                                   onstart="gsCatalogueLoading(true)" oncomplete="gsCatalogueLoading(false); gsCatMapRefresh();">
+                        <i class="#{c.icone}"></i>
+                        <h:outputText value="#{c.libelle}"/>
+                        <span class="gs-cat-chip__count">#{c.nbServices}</span>
+                    </p:commandLink>
+                </ui:repeat>
+            </nav>
+
+            <h:panelGroup id="catList" layout="block">
+
+                <div class="gs-catalogue-map">
+                    <div id="catMap"></div>
+                    <ui:fragment rendered="#{empty vitrineBean.servicesJson or vitrineBean.servicesJson eq '[]'}">
+                        <div class="gs-catalogue-map__empty">
+                            <span><i class="pi pi-map-marker" style="margin-right:6px"></i>#{msg['vitrine.nonLocalise']}</span>
+                        </div>
+                    </ui:fragment>
+                    <span id="catMapData" style="display:none">#{vitrineBean.servicesJson}</span>
+                </div>
+
+                <ui:fragment rendered="#{empty vitrineBean.services}">
+                    <div class="gs-empty">
+                        <i class="pi pi-inbox"></i>
+                        <p>#{msg['vitrine.aucunService']}</p>
+                    </div>
+                </ui:fragment>
+
+                <div class="gs-service-grid">
+                    <ui:repeat value="#{vitrineBean.services}" var="s" varStatus="st">
+                        <article class="gs-service-card" data-aos="fade-up" data-aos-delay="#{(st.index % 6) * 70}">
+                            <div class="gs-service-card__top">
+                                <span class="gs-service-card__icon"><i class="#{s.categorieIcone}"></i></span>
+                                <span class="gs-badge #{s.disponible ? '-ok' : '-off'}">
+                                    #{s.disponible ? msg['vitrine.ouvert'] : msg['vitrine.ferme']}
+                                </span>
+                            </div>
+                            <h3>#{s.libelle}</h3>
+                            <p class="gs-service-card__meta">
+                                <i class="pi pi-map-marker"></i> #{empty s.villeLibelle ? msg['vitrine.nonLocalise'] : s.villeLibelle}
+                            </p>
+                            <p class="gs-service-card__desc">#{s.description}</p>
+                            <div class="gs-service-card__foot">
+                                <span class="gs-stars" data-note="#{s.noteMoyenne}" title="#{s.noteMoyenne}">★★★★★<small>(#{s.nombreAvis})</small></span>
+                                <h:link outcome="/public/service" styleClass="gs-btn -sm">
+                                    <f:param name="id" value="#{s.id}"/>
+                                    #{msg['vitrine.voir']}
+                                </h:link>
+                            </div>
+                        </article>
+                    </ui:repeat>
+                </div>
+            </h:panelGroup>
+        </h:form>
+    </ui:define>
+
+    <ui:define name="scripts">
+        <h:outputScript library="js" name="vitrine.js" target="body"/>
+        <h:outputScript>
+            //<![CDATA[
+            window.gsCatMapRefresh = function () {
+                var el = document.getElementById("catMapData");
+                if (!el || !window.gsMapView) { return; }
+                var pts = [];
+                try { pts = JSON.parse(el.textContent || "[]"); } catch (e) {}
+                window.gsMapView("catMap", pts);
+            };
+            document.addEventListener("DOMContentLoaded", function () {
+                var t = 0;
+                (function boot() {
+                    if (window.gsMapView) { window.gsCatMapRefresh(); }
+                    else if (t++ < 40) { setTimeout(boot, 150); }
+                })();
+            });
+            //]]>
+        </h:outputScript>
+    </ui:define>
+</ui:composition>

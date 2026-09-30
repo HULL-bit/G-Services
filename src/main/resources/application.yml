@@ -1,0 +1,124 @@
+server:
+  port: 8080
+  forward-headers-strategy: framework
+  error:
+    whitelabel:
+      enabled: false
+  shutdown: graceful
+  servlet:
+    session:
+      timeout: 30m
+
+spring:
+  application:
+    name: gservices
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/gservices}
+    username: ${SPRING_DATASOURCE_USERNAME:gservices}
+    password: ${SPRING_DATASOURCE_PASSWORD:gservices}
+    hikari:
+      pool-name: gs-hikari
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Le schéma est géré exclusivement par Flyway. Hibernate se contente de valider.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: UTC
+        default_schema: public
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
+  mvc:
+    problemdetails:
+      enabled: true
+
+# ---------------------------------------------------------------- JoinFaces / JSF
+joinfaces:
+  faces:
+    # Development => messages d'erreur détaillés + rechargement des .xhtml sans build.
+    project-stage: ${FACES_PROJECT_STAGE:Development}
+    facelets-skip-comments: true
+    interpret-empty-string-submitted-values-as-null: true
+  primefaces:
+    theme: ${PF_THEME:saga}
+    client-side-validation: true
+  mojarra:
+    # Sans ceci, Mojarra envoie « Cache-Control: max-age=604800 » (7 jours) sur
+    # nos propres CSS/JS (resources/css, resources/js) : après un redéploiement,
+    # les navigateurs continuent de servir l'ancienne version depuis leur cache
+    # disque pendant toute la semaine, sans même revalider auprès du serveur.
+    # À 0, le navigateur revalide systématiquement (ETag/Last-Modified) et reçoit
+    # donc la nouvelle version dès qu'elle change — sans perdre le bénéfice du
+    # cache quand le fichier est réellement inchangé (réponse 304).
+    default-resource-max-age: 0
+
+# ---------------------------------------------------------------- Sécurité G-SERVICES
+gservices:
+  securite:
+    max-tentatives: ${SECURITE_MAX_TENTATIVES:5}
+    duree-verrouillage: ${SECURITE_DUREE_VERROUILLAGE:15m}
+    duree-remember-me: ${SECURITE_DUREE_REMEMBER_ME:14d}
+    remember-me-cle: ${SECURITE_REMEMBER_ME_CLE:gservices-remember-me-CHANGER-EN-PROD}
+    bootstrap:
+      actif: ${SECURITE_BOOTSTRAP_ACTIF:true}
+      login: ${SECURITE_BOOTSTRAP_LOGIN:superadmin}
+      mot-de-passe: ${SECURITE_BOOTSTRAP_MDP:Admin@2026}
+      nom: ${SECURITE_BOOTSTRAP_NOM:Super}
+      prenom: ${SECURITE_BOOTSTRAP_PRENOM:Admin}
+      email: ${SECURITE_BOOTSTRAP_EMAIL:superadmin@gservices.com}
+
+# ---------------------------------------------------------------- Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# ---------------------------------------------------------------- Logs
+logging:
+  level:
+    root: INFO
+    com.gservices: DEBUG
+    org.hibernate.SQL: INFO
+    org.flywaydb: INFO
+
+---
+# ================= Profil "docker" (surcharge à l'exécution en conteneur) =========
+spring:
+  config:
+    activate:
+      on-profile: docker
+  flyway:
+    connect-retries: 10
+    connect-retries-interval: 5s
+
+joinfaces:
+  faces:
+    project-stage: ${FACES_PROJECT_STAGE:Production}

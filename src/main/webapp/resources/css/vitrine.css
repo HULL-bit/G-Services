@@ -1,0 +1,530 @@
+/* ============================================================================
+   G-SERVICES — Vitrine publique (catalogue + fiche service)
+   Chargé après theme.css / dark.css : réutilise les jetons.
+   ========================================================================== */
+
+.gs-vitrine-hero {
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  padding: clamp(64px, 12vw, 130px) 0 clamp(48px, 8vw, 80px);
+}
+.gs-vitrine-hero h1 { color: #fff; margin: .2em 0 .3em; }
+.gs-vitrine-hero .gs-eyebrow { color: var(--gs-accent); }
+.gs-vitrine-hero .gs-lead { color: rgba(255, 255, 255, .82); max-width: 640px; }
+.gs-vitrine-hero.-service { padding-top: clamp(48px, 9vw, 96px); }
+
+.gs-fav-form { position: absolute; top: 20px; right: 20px; z-index: 2; }
+a.gs-fav-btn, .gs-fav-btn {
+  display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(255, 255, 255, .16); border: 1.5px solid rgba(255, 255, 255, .5);
+  backdrop-filter: blur(6px); color: #fff !important; font-size: 1.15rem; cursor: pointer;
+  transition: transform .18s var(--gs-ease), background .18s var(--gs-ease), color .18s var(--gs-ease);
+}
+a.gs-fav-btn:hover, .gs-fav-btn:hover { transform: scale(1.08); background: rgba(255, 255, 255, .28); }
+a.gs-fav-btn.is-on, .gs-fav-btn.is-on {
+  background: var(--gs-accent); border-color: var(--gs-accent); color: #1a1a1a !important;
+}
+
+.gs-report { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--gs-border); text-align: center; }
+.gs-report-link {
+  display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--gs-text-soft);
+  cursor: pointer; text-decoration: none;
+}
+.gs-report-link:hover { color: var(--gs-danger); }
+
+.gs-fav-card__actions { display: inline-flex; align-items: center; gap: 10px; }
+a.gs-fav-remove, .gs-fav-remove {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  color: var(--gs-accent) !important; background: rgba(201, 162, 39, .12);
+  transition: transform .15s var(--gs-ease), background .15s var(--gs-ease);
+}
+a.gs-fav-remove:hover, .gs-fav-remove:hover { transform: scale(1.08); background: rgba(201, 162, 39, .22); }
+
+.gs-back, .gs-vitrine-hero .gs-back {
+  display: inline-flex; align-items: center; gap: 7px; color: rgba(255, 255, 255, .8);
+  font-weight: 600; font-size: .9rem; margin-bottom: 14px;
+}
+.gs-back:hover { color: #fff; }
+
+.gs-vitrine-body { padding: clamp(32px, 5vw, 56px) 20px clamp(56px, 9vw, 96px); }
+
+/* ---- puces de catégories ---- */
+.gs-cat-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; }
+.gs-cat-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 15px; border-radius: 999px; cursor: pointer;
+  background: var(--gs-surface); border: 1px solid var(--gs-border);
+  color: var(--gs-text); font-weight: 600; font-size: .9rem;
+  transition: all .18s var(--gs-ease);
+}
+.gs-cat-chip:hover { border-color: var(--gs-primary-2); transform: translateY(-2px); }
+.gs-cat-chip.is-active { background: var(--gs-primary); color: #fff; border-color: var(--gs-primary); }
+.gs-cat-chip.is-active .gs-cat-chip__count { background: rgba(255, 255, 255, .22); color: #fff; }
+.gs-cat-chip__count {
+  font-size: .72rem; background: rgba(46, 92, 138, .12); color: var(--gs-primary-2);
+  border-radius: 999px; padding: 1px 8px;
+}
+
+/* ---- grille de services ---- */
+.gs-service-grid {
+  display: grid; gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.gs-service-card {
+  background: var(--gs-surface); border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius); padding: 20px 22px; box-shadow: var(--gs-shadow);
+  display: flex; flex-direction: column; gap: 8px;
+  transition: transform .25s var(--gs-ease), box-shadow .25s var(--gs-ease);
+}
+.gs-service-card:hover { transform: translateY(-4px); box-shadow: var(--gs-shadow-lg); }
+.gs-service-card__top { display: flex; align-items: center; justify-content: space-between; }
+.gs-service-card__icon {
+  width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+  color: #fff; font-size: 1.1rem;
+  background: linear-gradient(135deg, var(--gs-primary), var(--gs-primary-2));
+}
+.gs-service-card h3 { margin: 4px 0 0; font-size: 1.15rem; }
+.gs-service-card__meta { color: var(--gs-text-soft); font-size: .84rem; margin: 0; }
+.gs-service-card__desc {
+  color: var(--gs-text-soft); font-size: .9rem; margin: 2px 0 0; flex: 1;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.gs-service-card__foot {
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--gs-border); padding-top: 12px; margin-top: 6px;
+}
+
+.gs-stars { color: var(--gs-accent); letter-spacing: 1px; font-size: .95rem; white-space: nowrap; }
+.gs-stars small { color: var(--gs-text-soft); margin-left: 4px; letter-spacing: 0; }
+
+.gs-badge {
+  font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 2px 9px;
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.gs-badge.-ok  { background: rgba(47, 133, 90, .15); color: #2f855a; }
+.gs-badge.-off { background: rgba(107, 114, 128, .16); color: var(--gs-text-soft); }
+:root[data-theme="dark"] .gs-badge.-ok { background: rgba(69, 196, 147, .18); color: #5fd0a4; }
+
+.gs-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--gs-primary); color: #fff; border: 0; cursor: pointer;
+  border-radius: 999px; padding: 10px 20px; font-family: var(--gs-font-title);
+  font-weight: 600; font-size: .9rem; text-decoration: none;
+  transition: background .18s var(--gs-ease), transform .18s var(--gs-ease);
+}
+.gs-btn:hover { background: var(--gs-primary-2); transform: translateY(-1px); color: #fff; }
+.gs-btn.-sm { padding: 7px 15px; font-size: .82rem; }
+
+.gs-empty {
+  text-align: center; color: var(--gs-text-soft); padding: 60px 20px;
+}
+.gs-empty i { font-size: 2.4rem; display: block; margin-bottom: 12px; opacity: .5; }
+.gs-empty.-mini { padding: 24px; }
+
+/* ---- fiche service ---- */
+.gs-service-hero__rating {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  color: rgba(255, 255, 255, .85); font-size: .95rem; margin: 6px 0 14px;
+}
+.gs-service-hero__rating strong { font-size: 1.15rem; color: #fff; }
+
+.gs-service-layout {
+  display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start;
+}
+@media (max-width: 960px) { .gs-service-layout { grid-template-columns: 1fr; } }
+
+.gs-vcard {
+  background: var(--gs-surface); border: 1px solid var(--gs-border);
+  border-radius: var(--gs-radius); box-shadow: var(--gs-shadow);
+  padding: 24px 26px; margin-bottom: 22px;
+}
+.gs-vcard h2 { font-size: 1.25rem; margin: 0 0 12px; display: flex; align-items: center; gap: 9px; }
+.gs-vcard h2 i { color: var(--gs-primary-2); }
+
+.gs-produit { border-top: 1px solid var(--gs-border); padding: 18px 0 4px; display: flex; gap: 18px; align-items: flex-start; }
+.gs-produit:first-of-type { border-top: 0; padding-top: 6px; }
+.gs-produit__img {
+  flex: none; width: 148px; height: 100px; object-fit: cover; border-radius: 12px;
+  background: var(--gs-bg); border: 1px solid var(--gs-border);
+}
+.gs-produit__body { flex: 1; min-width: 0; }
+.gs-produit__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.gs-produit__head h3 { margin: 0; font-size: 1.05rem; }
+.gs-produit__desc { color: var(--gs-text-soft); font-size: .9rem; margin: 4px 0 10px; }
+@media (max-width: 560px) { .gs-produit { flex-direction: column; gap: 10px; } .gs-produit__img { width: 100%; height: 140px; } }
+.gs-articles { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.gs-articles li {
+  display: grid; grid-template-columns: 6.5rem 1fr auto; gap: 12px; align-items: center;
+  padding: 8px 12px; border-radius: 10px; background: var(--gs-bg); font-size: .9rem;
+}
+.gs-articles li.-indispo { opacity: .5; }
+.gs-articles__ref { font-family: var(--gs-font-title); font-weight: 600; font-size: .78rem; color: var(--gs-text-soft); }
+.gs-articles__prix { text-align: right; white-space: nowrap; }
+.gs-articles__prix del { color: var(--gs-text-soft); margin-right: 6px; }
+.gs-articles__prix .gs-promo {
+  background: rgba(230, 57, 70, .13); color: var(--gs-danger); border-radius: 6px;
+  padding: 1px 6px; font-size: .74rem; font-weight: 700; margin-left: 6px;
+}
+
+/* ---- synthèse avis ---- */
+.gs-avis-synthese { display: flex; gap: 26px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+.gs-avis-synthese__note { text-align: center; }
+.gs-avis-synthese__note strong { font-size: 2.4rem; font-family: var(--gs-font-title); display: block; line-height: 1; }
+.gs-avis-synthese__bars { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 5px; }
+.gs-avis-bar { display: grid; grid-template-columns: 2.4rem 1fr 2rem; gap: 10px; align-items: center; font-size: .82rem; color: var(--gs-text-soft); }
+.gs-avis-bar__track { height: 8px; border-radius: 999px; background: var(--gs-bg); overflow: hidden; }
+.gs-avis-bar__fill { display: block; height: 100%; background: linear-gradient(90deg, var(--gs-primary-2), var(--gs-accent)); border-radius: 999px; }
+
+.gs-avis-form { background: var(--gs-bg); border: 1px solid var(--gs-border); border-radius: var(--gs-radius); padding: 18px 20px; margin: 4px 0 20px; }
+.gs-avis-form h3 { margin: 0 0 10px; font-size: 1rem; }
+.gs-avis-form__row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.gs-avis-form__row .ui-inputtextarea { width: 100%; }
+.gs-avis-cta { background: var(--gs-bg); border-radius: 12px; padding: 12px 16px; color: var(--gs-text-soft); font-size: .9rem; margin: 4px 0 18px; }
+.gs-avis-cta a { font-weight: 600; }
+
+.gs-avis-liste { display: flex; flex-direction: column; gap: 14px; }
+.gs-avis { border-top: 1px solid var(--gs-border); padding-top: 14px; }
+.gs-avis:first-child { border-top: 0; padding-top: 0; }
+.gs-avis__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.gs-avis__auteur { font-weight: 600; }
+.gs-avis__date { color: var(--gs-text-soft); font-size: .82rem; margin-left: auto; }
+.gs-avis__texte { margin: 6px 0 0; color: var(--gs-text); }
+.gs-avis__reponse { margin-top: 8px; padding: 10px 14px; background: var(--gs-bg); border-radius: 10px; font-size: .9rem; }
+.gs-avis__reponse strong { color: var(--gs-primary-2); display: block; margin-bottom: 3px; }
+.gs-avis__reponse p { margin: 0; color: var(--gs-text-soft); }
+
+/* ---- prestataire (aside) ---- */
+.gs-presta__list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 9px; font-size: .9rem; }
+.gs-presta__list i { color: var(--gs-primary-2); width: 18px; }
+.gs-presta__map { height: 200px; border-radius: 12px; overflow: hidden; margin-bottom: 14px; background: var(--gs-bg); }
+.gs-presta__h { font-size: .95rem; margin: 10px 0 8px; }
+.gs-horaires { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.gs-horaires th { text-align: left; font-weight: 600; padding: 5px 0; color: var(--gs-text-soft); width: 40%; }
+.gs-horaires td { padding: 5px 0; }
+
+@media (max-width: 640px) {
+  .gs-articles li { grid-template-columns: 1fr auto; }
+  .gs-articles__ref { display: none; }
+}
+
+/* ============================================================================
+   Couche cinématique (Lot 5 — design finalisé). Pilotée par vitrine.js.
+   Tout est neutralisé par le bloc prefers-reduced-motion de animations.css.
+   ========================================================================== */
+
+/* ---- Hero : dégradé animé + entrée du texte + parallaxe ---- */
+.gs-vitrine-hero { position: relative; overflow: hidden; background-attachment: scroll; }
+.gs-vitrine-hero::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg,
+      rgba(31, 58, 95, .55), rgba(17, 24, 39, .15) 40%,
+      rgba(201, 162, 39, .18) 65%, rgba(31, 58, 95, .55));
+  background-size: 300% 300%;
+  animation: gs-gradient-move 14s ease infinite;
+  mix-blend-mode: soft-light;
+}
+.gs-vitrine-hero .gs-container { position: relative; z-index: 1; }
+.gs-vitrine-hero .gs-eyebrow,
+.gs-vitrine-hero h1,
+.gs-vitrine-hero .gs-lead,
+.gs-vitrine-hero .gs-service-hero__rating,
+.gs-vitrine-hero .gs-back {
+  animation: gs-hero-rise .7s var(--gs-ease) both;
+}
+.gs-vitrine-hero .gs-back      { animation-delay: .02s; }
+.gs-vitrine-hero .gs-eyebrow   { animation-delay: .10s; }
+.gs-vitrine-hero h1            { animation-delay: .18s; }
+.gs-vitrine-hero .gs-service-hero__rating { animation-delay: .26s; }
+.gs-vitrine-hero .gs-lead      { animation-delay: .32s; }
+@keyframes gs-hero-rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+/* ---- Transition de page ---- */
+.gs-page-enter { opacity: 0; transform: translateY(14px); }
+.gs-page-enter.is-in {
+  opacity: 1; transform: none;
+  transition: opacity .5s var(--gs-ease), transform .5s var(--gs-ease);
+}
+body.gs-leaving { opacity: 0; transition: opacity .22s ease; }
+
+/* ---- Étoiles : remplissage doré animé (var --gs-star-fill posée en JS) ---- */
+.gs-stars[data-note] {
+  --gs-star-fill: 0%;
+  background: linear-gradient(90deg, var(--gs-accent) var(--gs-star-fill), rgba(120, 120, 120, .35) var(--gs-star-fill));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  transition: background-position .9s var(--gs-ease);
+}
+.gs-stars[data-note] small { -webkit-text-fill-color: var(--gs-text-soft); color: var(--gs-text-soft); }
+
+/* ---- Ripple sur les puces de catégorie ---- */
+.gs-cat-chip { position: relative; overflow: hidden; }
+.gs-cat-chip .gs-ripple {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  background: rgba(46, 92, 138, .35); transform: scale(0);
+  animation: gs-ripple .6s var(--gs-ease);
+}
+.gs-cat-chip.is-active .gs-ripple { background: rgba(255, 255, 255, .4); }
+
+/* ---- Squelette pendant le changement de catégorie ---- */
+.gs-service-grid.gs-loading { position: relative; min-height: 220px; }
+.gs-service-grid.gs-loading > * { visibility: hidden; }
+.gs-service-grid.gs-loading::before,
+.gs-service-grid.gs-loading::after {
+  content: ""; position: absolute; top: 0; height: 190px; width: calc(50% - 10px);
+  border-radius: var(--gs-radius); overflow: hidden;
+  background: rgba(31, 58, 95, .07);
+}
+.gs-service-grid.gs-loading::before { left: 0; }
+.gs-service-grid.gs-loading::after  { left: calc(50% + 10px); }
+:root[data-theme="dark"] .gs-service-grid.gs-loading::before,
+:root[data-theme="dark"] .gs-service-grid.gs-loading::after { background: rgba(255, 255, 255, .05); }
+
+/* ---- Cartes : soulèvement + halo au survol ---- */
+.gs-service-card { position: relative; }
+.gs-service-card::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 1px transparent; transition: box-shadow .25s var(--gs-ease);
+}
+.gs-service-card:hover::after { box-shadow: 0 0 0 1px var(--gs-accent); }
+.gs-service-card__icon { transition: transform .3s var(--gs-ease); }
+.gs-service-card:hover .gs-service-card__icon { transform: rotate(-6deg) scale(1.06); }
+
+/* ---- Révélation en cascade des avis / catalogues ---- */
+.gs-avis[data-aos], .gs-vcard[data-aos] { transition-duration: .6s; }
+
+/* ---- Acteur prestataire : réponse aux avis ---- */
+.gs-avis-cta.-owner { background: rgba(201, 162, 39, .12); color: var(--gs-text); }
+.gs-avis__reponse.-edit { background: var(--gs-surface); border: 1px dashed var(--gs-border); }
+.gs-avis__reponse.-edit .ui-inputtextarea { width: 100%; margin: 6px 0 8px; }
+.gs-map-link { color: var(--gs-primary-2); font-weight: 600; }
+
+/* ============================================================================
+   Page « Carte » publique — panneau de filtres + liste + carte plein écran
+   ========================================================================== */
+.gs-carte-wrap { padding-top: var(--gs-header-h, 76px); }
+.gs-carte-page {
+  display: grid; grid-template-columns: 380px 1fr;
+  height: calc(100vh - var(--gs-header-h, 76px)); min-height: 560px;
+}
+.gs-carte-panel {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--gs-surface); border-right: 1px solid var(--gs-border);
+}
+.gs-carte-panel__head { padding: 22px 24px 12px; }
+.gs-carte-panel__head h1 { margin: .1em 0 .2em; font-size: 1.6rem; }
+.gs-carte-filtres {
+  padding: 0 24px 16px; display: flex; flex-direction: column; gap: 9px;
+  border-bottom: 1px solid var(--gs-border);
+}
+.gs-carte-filtres__lbl { font-size: .78rem; font-weight: 600; color: var(--gs-text-soft); margin-top: 6px; }
+.gs-carte-filtres input[type="text"], .gs-carte-filtres select {
+  padding: 9px 12px; border: 1px solid var(--gs-border); border-radius: 10px;
+  background: var(--gs-bg); color: var(--gs-text); font-size: .9rem;
+}
+.gs-carte-filtres .ui-input-icon-left > i { top: 50%; transform: translateY(-50%); left: 12px; }
+.gs-carte-filtres .ui-input-icon-left > input { padding-left: 34px; }
+.gs-carte-filtres__stars { color: var(--gs-accent); font-size: 1.15rem; cursor: pointer; letter-spacing: 3px; }
+.gs-carte-filtres__stars i { cursor: pointer; }
+.gs-carte-filtres__check { display: flex; align-items: center; gap: 8px; font-size: .88rem; margin-top: 4px; }
+
+.gs-carte-liste { flex: 1; overflow-y: auto; padding: 10px 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+.gs-carte-item {
+  display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center;
+  padding: 12px; border: 1px solid var(--gs-border); border-radius: 12px;
+  background: var(--gs-bg); transition: border-color .15s var(--gs-ease), transform .15s var(--gs-ease);
+}
+.gs-carte-item.is-hover, .gs-carte-item:hover { border-color: var(--gs-primary-2); transform: translateX(2px); }
+.gs-carte-item__icon {
+  width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, var(--gs-primary), var(--gs-primary-2));
+}
+.gs-carte-item__body h3 { margin: 0; font-size: .98rem; }
+.gs-carte-item__body .gs-hint { margin: 2px 0; font-size: .78rem; }
+.gs-carte-item__meta { display: flex; align-items: center; gap: 8px; font-size: .82rem; margin: 3px 0 0; }
+
+.gs-carte-map { position: relative; }
+#carteMap { position: absolute; inset: 0; }
+
+@media (max-width: 880px) {
+  .gs-carte-page { grid-template-columns: 1fr; height: auto; }
+  .gs-carte-panel { border-right: 0; border-bottom: 1px solid var(--gs-border); }
+  .gs-carte-liste { max-height: 40vh; }
+  .gs-carte-map { height: 60vh; }
+}
+
+/* ============================================================================
+   Formulaire d'inscription (carte auth centrée sur fond immersif)
+   ========================================================================== */
+.gs-auth {
+  min-height: calc(100vh - var(--gs-header-h, 72px));
+  background-size: cover; background-position: center;
+  display: grid; place-items: center; padding: 48px 20px;
+}
+.gs-auth-card {
+  width: 100%; max-width: 560px;
+  background: var(--gs-surface); border: 1px solid var(--gs-border);
+  border-radius: 20px; box-shadow: 0 30px 80px rgba(17, 24, 39, .35);
+  padding: 34px 36px;
+}
+.gs-auth-card__brand { display: flex; align-items: center; gap: 14px; }
+.gs-auth-card__logo {
+  width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center;
+  color: #fff; font-size: 1.3rem; flex: none;
+  background: linear-gradient(135deg, var(--gs-primary), var(--gs-primary-2));
+}
+.gs-auth-card__brand h1 { margin: 0; font-size: 1.5rem; }
+.gs-auth-card__lead { color: var(--gs-text-soft); font-size: .92rem; margin: 14px 0 18px; }
+.gs-auth-card__msg { display: block; margin-bottom: 12px; }
+.gs-auth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; align-items: start; }
+.gs-auth-grid .gs-col-2 { grid-column: 1 / -1; }
+.gs-auth-grid .gs-field-v { display: flex; flex-direction: column; }
+.gs-auth-grid .gs-field-v > label { display: block; font-size: .78rem; font-weight: 600; color: var(--gs-text-soft); margin-bottom: 5px; }
+.gs-auth-grid .gs-hint { font-size: .78rem; color: var(--gs-text-soft); margin-top: 6px; line-height: 1.45; }
+.gs-auth-grid .ui-selectonebutton { display: inline-flex; flex-wrap: wrap; }
+.gs-auth-grid .ui-input-icon-left { display: block; }
+.gs-auth-grid .ui-input-icon-left > i { left: 12px; }
+.gs-auth-grid .ui-input-icon-left input,
+.gs-auth-grid .ui-password { width: 100%; }
+.gs-auth-grid .ui-input-icon-left input { padding-left: 34px; }
+.gs-auth-card__rgpd {
+  display: flex; align-items: center; gap: 8px; font-size: .8rem;
+  color: var(--gs-text-soft); background: var(--gs-bg);
+  border-radius: 10px; padding: 10px 14px; margin: 16px 0 18px;
+}
+.gs-auth-card__actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.gs-auth-card__alt { font-weight: 600; font-size: .88rem; }
+.gs-auth-card__done { text-align: center; padding: 20px 0 8px; }
+.gs-auth-card__done i { font-size: 2.6rem; color: var(--gs-success); display: block; margin-bottom: 12px; }
+.gs-auth-card__done p { color: var(--gs-text-soft); margin-bottom: 16px; }
+
+/* Tunnel d'inscription : choix d'abord, puis formulaire */
+.gs-auth-card [data-insc] { display: none; animation: gsPanelIn .28s var(--gs-ease, ease); }
+.gs-auth-card [data-insc].is-on { display: block; }
+@keyframes gsPanelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.gs-choice { display: grid; gap: 12px; margin-top: 6px; }
+.gs-choice__opt {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; text-decoration: none;
+  padding: 16px 18px; border: 1px solid var(--gs-border); border-radius: 14px;
+  background: var(--gs-bg); color: var(--gs-text); cursor: pointer; font: inherit;
+  transition: border-color .18s var(--gs-ease), transform .18s var(--gs-ease), box-shadow .18s var(--gs-ease);
+}
+.gs-choice__opt, .gs-choice__opt:hover, .gs-choice__opt:visited, .gs-choice__opt:focus { color: var(--gs-text); }
+.gs-choice__opt:hover { border-color: var(--gs-primary-2); transform: translateY(-2px); box-shadow: var(--gs-shadow); }
+.gs-choice__ic {
+  flex: none; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px;
+  background: linear-gradient(135deg, var(--gs-primary), var(--gs-primary-2)); color: #fff; font-size: 1.2rem;
+}
+.gs-choice__opt.-accent .gs-choice__ic { background: linear-gradient(135deg, var(--gs-accent), #E0BF5A); color: #1a1a1a; }
+.gs-choice__txt strong { display: block; font-size: 1rem; }
+.gs-choice__txt span { display: block; font-size: .82rem; color: var(--gs-text-soft); margin-top: 2px; }
+.gs-choice__go { margin-left: auto; color: var(--gs-text-soft); }
+
+.gs-step__back {
+  display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; cursor: pointer;
+  color: var(--gs-text-soft); font: inherit; font-size: .86rem; padding: 0; margin-bottom: 14px;
+}
+.gs-step__back:hover { color: var(--gs-primary-2); }
+
+@media (max-width: 520px) { .gs-auth-grid { grid-template-columns: 1fr; } }
+
+/* Lien de connexion discret dans la nav publique */
+.gs-nav a.-quiet { opacity: .72; font-size: .9em; }
+.gs-nav a.-quiet:hover { opacity: 1; }
+
+/* Pages publiques sans hero (carte, inscription, catalogue, fiche) :
+   en-tête solide dès le chargement, pas seulement au scroll. */
+body:not(:has(.gs-hero)) .gs-header {
+  background: var(--gs-surface);
+  border-bottom: 1px solid var(--gs-border);
+  box-shadow: 0 4px 18px rgba(31, 58, 95, .10);
+}
+body:not(:has(.gs-hero)) .gs-main { padding-top: 0; }
+body:not(:has(.gs-hero)) .gs-header .gs-logo .-on-dark  { display: none; }
+body:not(:has(.gs-hero)) .gs-header .gs-logo .-on-light { display: block; }
+
+/* ============================================================================
+   Pin de carte G-SERVICES (DivIcon Leaflet) — cohérent sur toutes les cartes
+   ========================================================================== */
+.gs-pin { background: none; border: none; }
+.gs-pin__dot {
+  position: absolute; inset: 0 0 10px 0; display: grid; place-items: center;
+  width: 32px; height: 32px; border-radius: 50% 50% 50% 4px; transform: rotate(-45deg);
+  background: linear-gradient(135deg, var(--gs-primary), var(--gs-primary-2));
+  border: 2px solid #fff; box-shadow: 0 4px 12px rgba(17, 24, 39, .35);
+  transition: transform .18s var(--gs-ease), box-shadow .18s var(--gs-ease);
+}
+.gs-pin__dot i { transform: rotate(45deg); color: #fff; font-size: .8rem; }
+.gs-pin--lg .gs-pin__dot { width: 40px; height: 40px; border-radius: 50% 50% 50% 4px; }
+.gs-pin--lg .gs-pin__dot i { font-size: 1rem; }
+.gs-pin__tip {
+  position: absolute; bottom: 4px; left: 50%; width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(17, 24, 39, .25); transform: translateX(-50%); filter: blur(1px);
+}
+.leaflet-marker-icon.gs-pin:hover .gs-pin__dot,
+.leaflet-marker-icon.gs-pin.gs-pin--active .gs-pin__dot {
+  transform: rotate(-45deg) scale(1.15);
+  box-shadow: 0 8px 20px rgba(201, 162, 39, .5);
+  border-color: var(--gs-accent);
+}
+.leaflet-popup-content-wrapper { border-radius: 12px; }
+.leaflet-popup-content { font-size: .86rem; line-height: 1.5; }
+
+/* Cartes plus grandes et mieux intégrées */
+.gs-presta__map { height: 320px; border-radius: var(--gs-radius); }
+.gs-catalogue-map { height: 380px; border-radius: var(--gs-radius); overflow: hidden;
+  box-shadow: var(--gs-shadow); margin: 4px 0 26px; position: relative; background: var(--gs-surface); }
+.gs-catalogue-map #catMap { position: absolute; inset: 0; }
+.gs-catalogue-map__empty {
+  position: absolute; inset: 0; display: grid; place-items: center; color: var(--gs-text-soft);
+  background: var(--gs-bg); font-size: .9rem;
+}
+.gs-itineraire-btn { width: 100%; justify-content: center; margin-top: 10px; }
+
+/* Itinéraire OSM/OSRM (position GPS du visiteur → prestataire) */
+.gs-itineraire-note {
+  font-size: .82rem; color: var(--gs-text-soft); text-align: center;
+  margin: 8px 0 2px; min-height: 1.2em;
+}
+.gs-pin__dot--moi {
+  width: 26px; height: 26px; border-radius: 50%; transform: none;
+  background: linear-gradient(135deg, #2f6fed, #5b8def);
+  box-shadow: 0 3px 10px rgba(47, 111, 237, .5);
+}
+.gs-pin--moi { background: none; border: none; }
+.gs-pin--moi .gs-pin__dot--moi i { font-size: .72rem; }
+.leaflet-routing-container {
+  background: var(--gs-surface); color: var(--gs-text);
+  border-radius: var(--gs-radius); box-shadow: var(--gs-shadow);
+  padding: 10px 14px; max-width: 260px; max-height: 260px; overflow-y: auto;
+  font-family: var(--gs-font-body, inherit); font-size: .82rem;
+}
+.leaflet-routing-container h2, .leaflet-routing-container h3 { font-size: .88rem; margin: 4px 0 8px; }
+.leaflet-routing-alt { display: none; } /* un seul itinéraire proposé, pas d'alternatives à choisir */
+.leaflet-routing-geocoders { display: none; } /* champs d'adresse éditables : inutiles, points déjà fixés */
+
+/* Commande à distance (fiche service) */
+.gs-commande__lignes { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.gs-commande__lignes li {
+  display: grid; grid-template-columns: 1fr auto 84px; gap: 12px; align-items: center;
+  padding: 10px 12px; border: 1px solid var(--gs-border); border-radius: 12px; background: var(--gs-bg);
+}
+.gs-commande__desc { font-size: .9rem; }
+.gs-commande__prix { font-weight: 600; white-space: nowrap; color: var(--gs-text-soft); }
+.gs-commande__qte input { width: 100%; text-align: center; }
+.gs-commande__foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 16px; flex-wrap: wrap;
+}
+.gs-commande__total { font-family: var(--gs-font-title); font-weight: 700; font-size: 1.1rem; }
+.gs-commande__ok {
+  display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 12px;
+  background: color-mix(in srgb, var(--gs-success) 12%, transparent); color: var(--gs-success);
+  font-weight: 600;
+}
+.gs-commande__ok i { font-size: 1.2rem; }
+@media (max-width: 560px) {
+  .gs-commande__lignes li { grid-template-columns: 1fr auto; }
+  .gs-commande__qte { grid-column: 1 / -1; }
+}

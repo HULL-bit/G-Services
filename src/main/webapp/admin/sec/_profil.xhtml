@@ -1,0 +1,125 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmPR">
+
+            <div class="gs-page__head">
+                <span class="ui-input-icon-left">
+                    <i class="pi pi-search"></i>
+                    <p:inputText value="#{profilBean.filtre}" placeholder="#{msg['action.rechercher']}">
+                        <p:ajax event="keyup" update=":secTabs:frmPR:tbl" delay="350"/>
+                    </p:inputText>
+                </span>
+                <span class="gs-spacer"></span>
+                <p:commandButton value="#{msg['action.nouveau']}" icon="pi pi-plus" process="@this"
+                                 rendered="#{utilisateurCourant.autorise(perms.PROFIL_CREER)}"
+                                 action="#{profilBean.preparerCreation}" update=":secTabs:frmPR:dlgProfil"
+                                 oncomplete="PF('dlgProfil').show()"/>
+                <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                                 rendered="#{utilisateurCourant.autorise(perms.PROFIL_EXPORTER)}">
+                    <p:dataExporter type="csv" target="tbl" fileName="profils"/>
+                </p:commandButton>
+            </div>
+
+            <p:dataTable id="tbl" widgetVar="tblPR" var="row" value="#{profilBean.model}" lazy="true"
+                         paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                         paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+                <p:column headerText="#{msg['profil.libelle']}" sortBy="#{row.libelle}">#{row.libelle}</p:column>
+                <p:column headerText="#{msg['profil.description']}">#{row.description}</p:column>
+                <p:column headerText="#{msg['profil.niveau']}" sortBy="#{row.niveau}" style="width:7rem">#{row.niveau}</p:column>
+                <p:column headerText="#{msg['profil.nbPersonnes']}" style="width:8rem">#{row.nbPersonnes}</p:column>
+                <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:9rem">
+                    <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{row.etat ? 'success' : 'danger'}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:11rem" exportable="false">
+                    <span class="gs-actions">
+                        <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.PROFIL_MODIFIER)}"
+                                         action="#{profilBean.preparerEdition(row)}" update=":secTabs:frmPR:dlgProfil"
+                                         oncomplete="PF('dlgProfil').show()" styleClass="ui-button-flat"/>
+                        <p:commandButton icon="pi pi-key" title="#{msg['profil.gererDroits']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.PROFIL_AFFECTER)}"
+                                         action="#{profilBean.gererDroits(row)}" update=":secTabs:frmPR:dlgDroits"
+                                         oncomplete="if (args &amp;&amp; args.droits) PF('dlgDroits').show()"
+                                         styleClass="ui-button-flat"/>
+                        <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                         title="#{row.etat ? msg['action.desactiver'] : msg['action.activer']}"
+                                         rendered="#{utilisateurCourant.autorise(perms.PROFIL_SUPPRIMER)}"
+                                         action="#{profilBean.basculerEtat(row)}" update=":secTabs:frmPR:tbl :growl"
+                                         styleClass="ui-button-flat">
+                            <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                       icon="pi pi-exclamation-triangle"/>
+                        </p:commandButton>
+                    </span>
+                </p:column>
+            </p:dataTable>
+        
+
+        
+            <p:dialog id="dlgProfil" widgetVar="dlgProfil" modal="true" resizable="false" width="560" responsive="true"
+                      header="#{empty profilBean.selection.id ? msg['profil.dialogNouveau'] : msg['profil.dialogEdition']}">
+                <p:messages showDetail="true" closable="true"/>
+                <div class="gs-form-grid">
+                    <div class="gs-field-v">
+                        <label>#{msg['profil.libelle']}</label>
+                        <p:inputText value="#{profilBean.selection.libelle}" required="true" maxlength="80"/>
+                    </div>
+                    <div class="gs-field-v">
+                        <label>#{msg['profil.niveau']}</label>
+                        <p:spinner value="#{profilBean.selection.niveau}" min="0" stepFactor="1" size="5"/>
+                    </div>
+                    <div class="gs-field-v gs-col-2">
+                        <label>#{msg['profil.description']}</label>
+                        <p:inputTextarea value="#{profilBean.selection.description}" rows="2" maxlength="255" autoResize="false"/>
+                    </div>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgProfil').hide()"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{profilBean.enregistrer}"
+                                     update=":secTabs:frmPR:tbl :secTabs:frmPR:dlgProfil :growl"
+                                     oncomplete="if (args &amp;&amp; args.ok) PF('dlgProfil').hide()" process=":secTabs:frmPR:dlgProfil"/>
+                </f:facet>
+            </p:dialog>
+        
+
+        
+            <p:dialog id="dlgDroits" widgetVar="dlgDroits" modal="true" resizable="false" width="760" responsive="true"
+                      header="#{msg['profil.gererDroits']} — #{profilBean.profilDroits.libelle}">
+                <p:messages showDetail="true" closable="true"/>
+                <h4 class="gs-droits-h">#{msg['profil.branches']}
+                    <span class="gs-count">#{profilBean.branchesSelectionnees.size()}/#{profilBean.toutesBranches.size()}</span>
+                </h4>
+                <p:selectManyCheckbox value="#{profilBean.branchesSelectionnees}" layout="responsive" columns="3"
+                                      converter="jakarta.faces.Long" styleClass="gs-droits-list">
+                    <f:selectItems value="#{profilBean.toutesBranches}" var="b"
+                                   itemLabel="#{b.code} · #{b.libelle}" itemValue="#{b.id}"/>
+                </p:selectManyCheckbox>
+
+                <h4 class="gs-droits-h">#{msg['profil.permissions']}
+                    <span class="gs-count">#{profilBean.permissionsSelectionnees.size()}/#{profilBean.toutesPermissions.size()}</span>
+                </h4>
+                <div class="gs-droits-scroll">
+                    <p:selectManyCheckbox value="#{profilBean.permissionsSelectionnees}" layout="responsive" columns="2"
+                                          converter="jakarta.faces.Long" styleClass="gs-droits-list">
+                        <f:selectItems value="#{profilBean.toutesPermissions}" var="pm"
+                                       itemLabel="#{pm.code} · #{pm.brancheLibelle} — #{pm.libelle}" itemValue="#{pm.id}"/>
+                    </p:selectManyCheckbox>
+                </div>
+                <f:facet name="footer">
+                    <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                     onclick="PF('dlgDroits').hide()"/>
+                    <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                     action="#{profilBean.enregistrerDroits}"
+                                     update=":secTabs:frmPR:tbl :secTabs:frmPR:dlgDroits :growl"
+                                     oncomplete="if (args &amp;&amp; args.ok) PF('dlgDroits').hide()" process=":secTabs:frmPR:dlgDroits"/>
+                </f:facet>
+            </p:dialog>
+        
+    </h:form>
+</ui:composition>

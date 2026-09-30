@@ -1,0 +1,44 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmBloq">
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{signalementBean.filtreBloques}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update="tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:tag value="#{signalementBean.nombreBloques} #{msg['signalement.tab.bloques']}" severity="danger"
+                   icon="pi pi-ban" rendered="#{signalementBean.nombreBloques gt 0}"/>
+        </div>
+
+        <p:dataTable id="tbl" var="s" value="#{signalementBean.modelBloques}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['sanction.f.service']}">
+                <span style="color:var(--gs-text-soft)">#{s.categorieLibelle} › </span>#{s.serviceLibelle}
+            </p:column>
+            <p:column headerText="#{msg['sanction.f.motif']}" style="max-width:20rem">
+                <div style="white-space:normal">#{s.motif}</div>
+            </p:column>
+            <p:column headerText="#{msg['sanction.f.dateSanction']}" style="width:9rem">
+                <h:outputText value="#{s.dateSanction}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
+            </p:column>
+            <p:column headerText="#{msg['sanction.f.admin']}" style="width:10rem">#{s.adminNom}</p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:9rem" exportable="false">
+                <p:commandButton icon="pi pi-check" value="#{msg['sanction.lever']}" process="@this"
+                                 rendered="#{utilisateurCourant.autorise(perms.SIGNALEMENT_GERER)}"
+                                 action="#{signalementBean.lever(s)}" update=":modTabs:frmBloq:tbl :growl"
+                                 styleClass="ui-button-flat ui-button-sm">
+                    <p:confirm header="#{msg['action.confirmer']}" message="#{msg['sanction.lever.confirm']}"
+                               icon="pi pi-exclamation-triangle"/>
+                </p:commandButton>
+            </p:column>
+        </p:dataTable>
+    </h:form>
+</ui:composition>

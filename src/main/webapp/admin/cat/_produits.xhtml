@@ -1,0 +1,261 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:p="primefaces">
+    <h:form id="frmProd">
+        <div class="gs-page__head">
+            <span class="ui-input-icon-left">
+                <i class="pi pi-search"></i>
+                <p:inputText value="#{catalogueBean.filtreProduit}" placeholder="#{msg['action.rechercher']}">
+                    <p:ajax event="keyup" update=":catTabs:frmProd:tbl" delay="350"/>
+                </p:inputText>
+            </span>
+            <span class="gs-spacer"></span>
+            <p:commandButton value="#{msg['cat.produit.nouveau']}" icon="pi pi-plus" process="@this"
+                             rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_CREER)}"
+                             action="#{catalogueBean.nouveauProduit}" update=":catTabs:frmProd:dlgProd"
+                             oncomplete="PF('dlgProd').show()"/>
+            <p:commandButton icon="pi pi-download" value="CSV" ajax="false"
+                             rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_EXPORTER)}">
+                <p:dataExporter type="csv" target="tbl" fileName="offres"/>
+            </p:commandButton>
+        </div>
+
+        <p:dataTable id="tbl" var="row" value="#{catalogueBean.produits}" lazy="true"
+                     paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="10,25,50"
+                     paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                     emptyMessage="#{msg['common.aucuneDonnee']}" styleClass="gs-card">
+            <p:column headerText="#{msg['cat.f.produit']}" sortBy="#{row.libelle}">#{row.libelle}</p:column>
+            <p:column headerText="#{msg['cat.f.catalogue']}">#{row.serviceLibelle} › #{row.catalogueLibelle}</p:column>
+            <p:column headerText="#{msg['cat.f.articles']}" style="width:7rem">
+                <p:tag value="#{row.nbArticles}" severity="#{row.nbArticles gt 0 ? 'info' : 'warning'}"/>
+            </p:column>
+            <p:column headerText="#{msg['cat.f.proprietes']}" style="width:12rem">#{row.proprietesLibelles}</p:column>
+            <p:column headerText="#{msg['common.etat']}" sortBy="#{row.etat}" style="width:7rem">
+                <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
+                       severity="#{row.etat ? 'success' : 'danger'}"/>
+            </p:column>
+            <p:column headerText="#{msg['common.actions']}" style="width:9rem" exportable="false">
+                <span class="gs-actions">
+                    <p:commandButton icon="pi pi-pencil" title="#{msg['cat.offre.gerer']}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_MODIFIER)}"
+                                     action="#{catalogueBean.editerProduit(row)}" update=":catTabs:frmProd:dlgProd"
+                                     oncomplete="PF('dlgProd').show()" styleClass="ui-button-flat"/>
+                    <p:commandButton icon="#{row.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                     rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_SUPPRIMER)}"
+                                     action="#{catalogueBean.basculerProduit(row)}"
+                                     update=":catTabs:frmProd:tbl :growl" styleClass="ui-button-flat">
+                        <p:confirm header="#{msg['action.confirmer']}" message="#{msg['common.confirmToggle']}"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </span>
+            </p:column>
+        </p:dataTable>
+
+        <!-- ================= Dialogue OFFRE : le produit + ses articles ================= -->
+        <p:dialog id="dlgProd" widgetVar="dlgProd" modal="true" resizable="false" width="820" responsive="true"
+                  header="#{empty catalogueBean.produit.id ? msg['cat.produit.nouveau'] : msg['cat.offre.titre'].concat(' — ').concat(catalogueBean.produit.libelle)}">
+            <p:messages showDetail="true" closable="true"/>
+
+            <h4 class="gs-tab-h" style="margin-top:0">#{msg['cat.offre.leProduit']}</h4>
+            <div class="gs-form-grid">
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['cat.f.catalogue']}</label>
+                    <p:selectOneMenu value="#{catalogueBean.produit.catalogueId}" required="true"
+                                     filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{catalogueBean.refCatalogues}" var="c"
+                                       itemLabel="#{c.serviceLibelle} › #{c.libelle}" itemValue="#{c.id}"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.libelle']}</label>
+                    <p:inputText value="#{catalogueBean.produit.libelle}" required="true" maxlength="150"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['cat.f.image']}</label>
+                    <p:inputText value="#{catalogueBean.produit.image}" maxlength="160" placeholder="media/…"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.description']}</label>
+                    <p:inputTextarea value="#{catalogueBean.produit.description}" rows="2" maxlength="1000" autoResize="false"/>
+                </div>
+            </div>
+            <div style="margin:10px 0 4px">
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{catalogueBean.enregistrerProduit}" process=":catTabs:frmProd:dlgProd"
+                                 update=":catTabs:frmProd:tbl :catTabs:frmProd:dlgProd :growl"/>
+                <p:commandButton value="#{msg['cat.produit.gererProprietes']}" icon="pi pi-list" styleClass="ui-button-flat"
+                                 process="@this" rendered="#{not empty catalogueBean.produit.id}"
+                                 action="#{catalogueBean.gererProprietesProduit(catalogueBean.produit)}"
+                                 update=":catTabs:frmProd:dlgProps" oncomplete="PF('dlgProps').show()"/>
+            </div>
+
+            <p:divider/>
+
+            <div style="display:flex;align-items:center;justify-content:space-between">
+                <h4 class="gs-tab-h" style="margin:0">#{msg['cat.offre.lesArticles']} (#{catalogueBean.articlesDuProduit.size()})</h4>
+                <p:commandButton value="#{msg['cat.article.nouveau']}" icon="pi pi-plus" styleClass="ui-button-sm"
+                                 process="@this" rendered="#{not empty catalogueBean.produit.id and utilisateurCourant.autorise(perms.CATALOGUE_CREER)}"
+                                 action="#{catalogueBean.nouvelArticle}" update=":catTabs:frmProd:dlgArt"
+                                 oncomplete="PF('dlgArt').show()"/>
+            </div>
+            <h:outputText styleClass="gs-hint" rendered="#{empty catalogueBean.produit.id}"
+                          value="#{msg['cat.offre.enregistrezDabord']}" style="display:block"/>
+
+            <p:dataTable id="tblArt" var="a" value="#{catalogueBean.articlesDuProduit}" styleClass="gs-card"
+                         rendered="#{not empty catalogueBean.produit.id}"
+                         emptyMessage="#{msg['cat.offre.aucunArticle']}">
+                <p:column headerText="#{msg['cat.f.reference']}" style="width:8rem">#{a.reference}</p:column>
+                <p:column headerText="#{msg['geo.f.description']}">#{a.description}</p:column>
+                <p:column headerText="#{msg['cat.f.prix']}" style="width:12rem">
+                    <h:outputText value="#{a.prix}"><f:convertNumber type="number" maxFractionDigits="0"/></h:outputText>
+                    <span class="gs-hint"> #{a.devise}</span>
+                    <p:tag value="-#{a.tauxRemisePourcentage}%" severity="danger" rendered="#{a.promotion}" style="margin-left:6px"/>
+                </p:column>
+                <p:column headerText="#{msg['cat.f.dispo']}" style="width:6rem">
+                    <i class="pi #{a.disponibilite ? 'pi-check' : 'pi-times'}" style="color:#{a.disponibilite ? 'var(--gs-success)' : 'var(--gs-danger)'}"></i>
+                </p:column>
+                <p:column headerText="#{msg['common.etat']}" style="width:6rem">
+                    <p:tag value="#{a.etat ? msg['common.actif'] : msg['common.inactif']}"
+                           severity="#{a.etat ? 'success' : 'danger'}"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:10rem">
+                    <span class="gs-actions">
+                        <p:commandButton icon="pi pi-sliders-h" title="#{msg['cat.article.gererVarietes']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_MODIFIER)}"
+                                         action="#{catalogueBean.gererVarietes(a)}" update=":catTabs:frmProd:dlgVar"
+                                         oncomplete="PF('dlgVar').show()" styleClass="ui-button-flat"/>
+                        <p:commandButton icon="pi pi-pencil" title="#{msg['action.editer']}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_MODIFIER)}"
+                                         action="#{catalogueBean.editerArticle(a)}" update=":catTabs:frmProd:dlgArt"
+                                         oncomplete="PF('dlgArt').show()" styleClass="ui-button-flat"/>
+                        <p:commandButton icon="#{a.etat ? 'pi pi-ban' : 'pi pi-check'}" process="@this"
+                                         rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_SUPPRIMER)}"
+                                         action="#{catalogueBean.basculerArticle(a)}"
+                                         update=":catTabs:frmProd:tblArt :growl" styleClass="ui-button-flat"/>
+                    </span>
+                </p:column>
+            </p:dataTable>
+
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.fermer']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgProd').hide()"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- ================= Dialogue Article (déclinaison du produit) ================= -->
+        <p:dialog id="dlgArt" widgetVar="dlgArt" modal="true" resizable="false" width="620" responsive="true"
+                  header="#{empty catalogueBean.article.id ? msg['cat.article.nouveau'] : msg['cat.article.edition']}">
+            <p:messages showDetail="true" closable="true"/>
+            <p class="gs-hint" style="margin:0 0 8px">#{msg['cat.article.pourProduit']} <strong>#{catalogueBean.produit.libelle}</strong></p>
+            <div class="gs-form-grid">
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.reference']}</label>
+                    <p:inputText value="#{catalogueBean.article.reference}" required="true" maxlength="60"
+                                 style="text-transform:uppercase"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.modeVente']}</label>
+                    <p:selectOneMenu value="#{catalogueBean.article.modeVente}">
+                        <f:selectItem itemLabel="—" itemValue="#{null}"/>
+                        <f:selectItems value="#{catalogueBean.modesVente}" var="m" itemLabel="#{m}" itemValue="#{m}"/>
+                    </p:selectOneMenu>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['cat.f.prix']}</label>
+                    <p:inputNumber value="#{catalogueBean.article.prix}" decimalPlaces="2" minValue="0"/>
+                </div>
+                <div class="gs-field-v">
+                    <label>#{msg['geo.f.devise']}</label>
+                    <p:inputText value="#{catalogueBean.article.devise}" maxlength="10"/>
+                </div>
+                <div class="gs-field-v">
+                    <p:selectBooleanCheckbox value="#{catalogueBean.article.disponibilite}" itemLabel="#{msg['cat.f.dispo']}"/>
+                </div>
+                <div class="gs-field-v">
+                    <p:selectBooleanCheckbox value="#{catalogueBean.article.promotion}" itemLabel="#{msg['cat.f.promotion']}">
+                        <p:ajax update=":catTabs:frmProd:remiseField"/>
+                    </p:selectBooleanCheckbox>
+                </div>
+                <h:panelGroup id="remiseField" layout="block" styleClass="gs-field-v"
+                              rendered="#{catalogueBean.article.promotion}">
+                    <label>#{msg['cat.f.tauxRemise']} (%)</label>
+                    <p:inputNumber value="#{catalogueBean.article.tauxRemisePourcentage}" decimalPlaces="2" minValue="0" maxValue="100"/>
+                </h:panelGroup>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['cat.f.image']}</label>
+                    <p:inputText value="#{catalogueBean.article.image}" maxlength="160" placeholder="media/…"/>
+                </div>
+                <div class="gs-field-v gs-col-2">
+                    <label>#{msg['geo.f.description']}</label>
+                    <p:inputTextarea value="#{catalogueBean.article.description}" rows="2" maxlength="1000" autoResize="false"/>
+                </div>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgArt').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{catalogueBean.enregistrerArticle}" process=":catTabs:frmProd:dlgArt"
+                                 update=":catTabs:frmProd:tblArt :catTabs:frmProd:dlgArt :catTabs:frmProd:tbl :growl"
+                                 oncomplete="if (args &amp;&amp; args.articleOk) PF('dlgArt').hide()"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- ================= Dialogue « définit » (Produit ↔ ProprietesArticle) ================= -->
+        <p:dialog id="dlgProps" widgetVar="dlgProps" modal="true" resizable="false" width="560" responsive="true"
+                  header="#{msg['cat.produit.gererProprietes']}">
+            <p:messages showDetail="true" closable="true"/>
+            <p class="gs-hint" style="margin:0 0 10px">#{msg['cat.produit.proprietesAide']}</p>
+            <div class="gs-droits-scroll">
+                <p:selectManyCheckbox value="#{catalogueBean.proprietesCochees}" layout="grid" columns="1"
+                                      styleClass="gs-droits-list">
+                    <f:selectItems value="#{catalogueBean.refProprietes}" var="pr"
+                                   itemLabel="#{pr.libelle}#{empty pr.uniteMesureSymbole ? '' : ' ('.concat(pr.uniteMesureSymbole).concat(')')}"
+                                   itemValue="#{pr.id}"/>
+                </p:selectManyCheckbox>
+            </div>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.annuler']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgProps').hide()"/>
+                <p:commandButton value="#{msg['action.enregistrer']}" icon="pi pi-check"
+                                 action="#{catalogueBean.enregistrerProprietesProduit}" process=":catTabs:frmProd:dlgProps"
+                                 update=":catTabs:frmProd:tbl :catTabs:frmProd:dlgProps :growl"
+                                 oncomplete="if (args &amp;&amp; args.ok) PF('dlgProps').hide()"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-- ================= Dialogue Variétés (classe d'association VarieteArticle) ================= -->
+        <p:dialog id="dlgVar" widgetVar="dlgVar" modal="true" resizable="false" width="740" responsive="true"
+                  header="#{msg['cat.article.varietesTitre']} — #{catalogueBean.articleVarietes.reference}">
+            <p:messages showDetail="true" closable="true"/>
+            <p class="gs-hint" style="margin:0 0 10px">#{msg['cat.article.varietesAide']}</p>
+            <p:dataTable var="v" value="#{catalogueBean.grilleVarietes}" styleClass="gs-card"
+                         emptyMessage="#{msg['cat.article.varietesVides']}">
+                <p:column headerText="#{msg['cat.f.propriete']}" style="min-width:12rem">
+                    <strong>#{v.proprietesArticleLibelle}</strong>
+                    <h:outputText styleClass="gs-hint" rendered="#{not empty v.uniteMesureSymbole}" value=" (#{v.uniteMesureSymbole})"/>
+                </p:column>
+                <p:column headerText="#{msg['cat.f.typeSaisie']}" style="width:7rem">
+                    <p:tag value="#{v.typeSaisie}" severity="info" rendered="#{not empty v.typeSaisie}"/>
+                </p:column>
+                <p:column headerText="#{msg['cat.f.valeur']}" style="width:13rem">
+                    <p:inputText value="#{v.valeur}" style="width:100%"/>
+                </p:column>
+                <p:column headerText="#{msg['common.actions']}" style="width:11rem">
+                    <p:commandButton icon="pi pi-check" value="#{msg['action.enregistrer']}" styleClass="ui-button-flat"
+                                     process="@this @parent:@parent" action="#{catalogueBean.enregistrerVariete(v)}"
+                                     update=":catTabs:frmProd:dlgVar :growl"/>
+                    <p:commandButton icon="#{v.etat ? 'pi pi-ban' : 'pi pi-check-circle'}" styleClass="ui-button-flat"
+                                     process="@this" rendered="#{not empty v.id}" title="#{msg['common.etat']}"
+                                     action="#{catalogueBean.basculerVariete(v)}" update=":catTabs:frmProd:dlgVar :growl"/>
+                </p:column>
+            </p:dataTable>
+            <f:facet name="footer">
+                <p:commandButton value="#{msg['action.fermer']}" type="button" styleClass="ui-button-flat"
+                                 onclick="PF('dlgVar').hide()"/>
+            </f:facet>
+        </p:dialog>
+    </h:form>
+</ui:composition>
