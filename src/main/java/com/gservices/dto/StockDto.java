@@ -5,6 +5,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 public class StockDto implements Serializable {
@@ -12,6 +13,8 @@ public class StockDto implements Serializable {
     @PositiveOrZero private int quantiteTotale;
     @PositiveOrZero private int seuilAlerte;
     private boolean etat = true;
+    private LocalDateTime dateCreation;
+    private LocalDateTime dateModification;
     @NotNull private Long articleId;
     private String articleReference;
     private String produitLibelle;

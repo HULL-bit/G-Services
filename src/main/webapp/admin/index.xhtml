@@ -9,65 +9,154 @@
     <ui:define name="title">#{msg['dash.title']}</ui:define>
 
     <ui:define name="content">
-        <p class="gs-page__intro">#{msg['dash.intro']}</p>
 
+        <!-- ================= Bannière (même langage visuel que l'accueil public) ================= -->
+        <div class="gs-dash-hero" data-aos="fade-up">
+            <div class="gs-dash-hero__text">
+                <p class="gs-eyebrow">#{msg['dash.hero.bonjour']}#{not empty dashboardBean.nomComplet ? ', ' : ''}#{dashboardBean.nomComplet}</p>
+                <h1>#{msg['dash.title']}</h1>
+                <p class="gs-lead">#{msg['dash.hero.sub']}</p>
+            </div>
+            <div class="gs-dash-hero__stat">
+                <div class="v">#{dashboardBean.chiffres.totalATraiter}</div>
+                <div class="l">#{msg['dash.hero.atraiter']}</div>
+            </div>
+        </div>
+
+        <!-- ================= KPI : vue d'ensemble de la plateforme ================= -->
         <div class="gs-kpi-grid">
-            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up">
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/cat/catalogue.xhtml" data-aos="fade-up">
+                <div class="gs-kpi-card__icon"><i class="pi pi-briefcase"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.services}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.services']}</div>
+                </div>
+            </a>
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/cat/catalogue.xhtml" data-aos="fade-up" data-aos-delay="40">
+                <div class="gs-kpi-card__icon"><i class="pi pi-map-marker"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.servicesGeolocalises}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.servicesGeo']}</div>
+                </div>
+            </a>
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/fournisseurs.xhtml" data-aos="fade-up" data-aos-delay="80">
+                <div class="gs-kpi-card__icon"><i class="pi pi-building"></i></div>
+                <div class="gs-kpi-card__body">
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.fournisseurs}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.fournisseurs']}</div>
+                </div>
+            </a>
+            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/clients.xhtml" data-aos="fade-up" data-aos-delay="120">
                 <div class="gs-kpi-card__icon"><i class="pi pi-users"></i></div>
                 <div class="gs-kpi-card__body">
-                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.personnes}" data-decimals="0">0</div>
-                    <div class="gs-kpi-card__label">#{msg['dash.personnes']}</div>
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.clients}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.clients']}</div>
                 </div>
             </a>
-            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="60">
-                <div class="gs-kpi-card__icon"><i class="pi pi-check-circle"></i></div>
+            <a class="gs-kpi-card -accent -link" href="#{request.contextPath}/admin/commandes/commandes.xhtml" data-aos="fade-up" data-aos-delay="160">
+                <div class="gs-kpi-card__icon"><i class="pi pi-shopping-cart"></i></div>
                 <div class="gs-kpi-card__body">
-                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.personnesActives}" data-decimals="0">0</div>
-                    <div class="gs-kpi-card__label">#{msg['dash.personnesActives']}</div>
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.commandes}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.commandesTitre']}</div>
+                    <div class="gs-kpi-card__sub">
+                        <h:outputText value="#{dashboardBean.chiffres.montantCommandes}"><f:convertNumber maxFractionDigits="0"/></h:outputText> XOF
+                    </div>
                 </div>
             </a>
-            <a class="gs-kpi-card -warn -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="120">
-                <div class="gs-kpi-card__icon"><i class="pi pi-lock"></i></div>
+            <a class="gs-kpi-card -ok -link" href="#{request.contextPath}/admin/avis/moderation.xhtml" data-aos="fade-up" data-aos-delay="200">
+                <div class="gs-kpi-card__icon"><i class="pi pi-star"></i></div>
                 <div class="gs-kpi-card__body">
-                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.personnesVerrouillees}" data-decimals="0">0</div>
-                    <div class="gs-kpi-card__label">#{msg['dash.personnesVerrouillees']}</div>
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.avisPublies}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.avisPublies']}</div>
                 </div>
             </a>
-            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="180">
-                <div class="gs-kpi-card__icon"><i class="pi pi-id-card"></i></div>
+            <a class="gs-kpi-card -warn -link" href="#{request.contextPath}/admin/avis/moderation.xhtml" data-aos="fade-up" data-aos-delay="240">
+                <div class="gs-kpi-card__icon"><i class="pi pi-flag"></i></div>
                 <div class="gs-kpi-card__body">
-                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.profils}" data-decimals="0">0</div>
-                    <div class="gs-kpi-card__label">#{msg['dash.profils']}</div>
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.signalementsNouveaux}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.signalements']}</div>
                 </div>
             </a>
-            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="240">
-                <div class="gs-kpi-card__icon"><i class="pi pi-key"></i></div>
+            <a class="gs-kpi-card -warn -link" href="#{request.contextPath}/admin/avis/moderation.xhtml" data-aos="fade-up" data-aos-delay="280">
+                <div class="gs-kpi-card__icon"><i class="pi pi-ban"></i></div>
                 <div class="gs-kpi-card__body">
-                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.permissions}" data-decimals="0">0</div>
-                    <div class="gs-kpi-card__label">#{msg['dash.permissions']}</div>
-                </div>
-            </a>
-            <a class="gs-kpi-card -link" href="#{request.contextPath}/admin/sec/securite.xhtml" data-aos="fade-up" data-aos-delay="300">
-                <div class="gs-kpi-card__icon"><i class="pi pi-sitemap"></i></div>
-                <div class="gs-kpi-card__body">
-                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.branches}" data-decimals="0">0</div>
-                    <div class="gs-kpi-card__label">#{msg['dash.branches']}</div>
+                    <div class="gs-kpi-card__value" data-countup="#{dashboardBean.chiffres.servicesBloques}" data-decimals="0">0</div>
+                    <div class="gs-kpi-card__label">#{msg['dash.servicesBloques']}</div>
                 </div>
             </a>
         </div>
 
+        <!-- ================= Graphiques ================= -->
+        <div class="gs-dash-charts">
+            <div class="gs-chart-card" data-aos="fade-up">
+                <h3>#{msg['dash.categories.title']}</h3>
+                <p>#{msg['dash.categories.hint']}</p>
+                <ui:fragment rendered="#{dashboardBean.chiffres.services gt 0}">
+                    <p:donutChart model="#{dashboardBean.servicesParCategorie}" style="height:230px"/>
+                </ui:fragment>
+                <ui:fragment rendered="#{dashboardBean.chiffres.services eq 0}">
+                    <div class="gs-chart-empty">#{msg['dash.categories.vide']}</div>
+                </ui:fragment>
+            </div>
+            <div class="gs-chart-card" data-aos="fade-up" data-aos-delay="80">
+                <h3>#{msg['dash.commandes.title']}</h3>
+                <p>#{msg['dash.commandes.hint']}</p>
+                <ui:fragment rendered="#{dashboardBean.chiffres.commandes gt 0}">
+                    <p:barChart model="#{dashboardBean.commandesParStatut}" style="height:230px"/>
+                </ui:fragment>
+                <ui:fragment rendered="#{dashboardBean.chiffres.commandes eq 0}">
+                    <div class="gs-chart-empty">#{msg['dash.commandes.vide']}</div>
+                </ui:fragment>
+            </div>
+            <div class="gs-chart-card" data-aos="fade-up" data-aos-delay="160">
+                <h3>#{msg['dash.taux.title']}</h3>
+                <p>#{msg['dash.taux.hint']}</p>
+                <div class="gs-chart-card__knob">
+                    <p:knob value="#{dashboardBean.chiffres.tauxAvisModeres}" disabled="true" min="0" max="100"
+                            foregroundColor="#C9A227" backgroundColor="#E6ECF3" width="150" height="150"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= À traiter + sécurité ================= -->
         <div class="gs-dash-cols">
             <div class="gs-card" style="padding:22px 24px" data-aos="fade-up">
-                <h3 style="margin:0 0 2px">#{msg['dash.repartition.title']}</h3>
-                <p style="margin:0; color:var(--gs-text-soft); font-size:.86rem">#{msg['dash.repartition.hint']}</p>
-                <div class="gs-bars">
-                    <ui:repeat value="#{dashboardBean.repartition}" var="r">
-                        <div class="gs-bar__row">
-                            <span>#{r.libelle}</span>
-                            <span class="gs-bar__track"><span class="gs-bar__fill" style="width:#{r.pourcent}%"></span></span>
-                            <span class="gs-bar__val">#{r.valeur}</span>
-                        </div>
-                    </ui:repeat>
+                <h3 style="margin:0 0 10px">#{msg['dash.atraiter.title']}</h3>
+                <div class="gs-atraiter">
+                    <h:panelGroup layout="block" styleClass="gs-atraiter__empty"
+                                  rendered="#{dashboardBean.chiffres.totalATraiter eq 0}">
+                        <i class="pi pi-check-circle"></i>#{msg['dash.atraiter.vide']}
+                    </h:panelGroup>
+                    <h:outputLink styleClass="gs-atraiter__item" value="#{request.contextPath}/admin/sec/validations.xhtml"
+                       rendered="#{dashboardBean.chiffres.personnesEnAttente gt 0}">
+                        <span class="gs-atraiter__dot"></span>
+                        <span class="gs-atraiter__label">#{dashboardBean.chiffres.personnesEnAttente} #{msg['dash.atraiter.personnes']}</span>
+                        <span class="gs-atraiter__count">#{dashboardBean.chiffres.personnesEnAttente}</span>
+                    </h:outputLink>
+                    <h:outputLink styleClass="gs-atraiter__item" value="#{request.contextPath}/admin/sec/validations.xhtml"
+                       rendered="#{dashboardBean.chiffres.servicesEnAttente gt 0}">
+                        <span class="gs-atraiter__dot"></span>
+                        <span class="gs-atraiter__label">#{dashboardBean.chiffres.servicesEnAttente} #{msg['dash.atraiter.services']}</span>
+                        <span class="gs-atraiter__count">#{dashboardBean.chiffres.servicesEnAttente}</span>
+                    </h:outputLink>
+                    <h:outputLink styleClass="gs-atraiter__item" value="#{request.contextPath}/admin/avis/moderation.xhtml"
+                       rendered="#{dashboardBean.chiffres.avisEnAttente gt 0}">
+                        <span class="gs-atraiter__dot"></span>
+                        <span class="gs-atraiter__label">#{dashboardBean.chiffres.avisEnAttente} #{msg['dash.atraiter.avis']}</span>
+                        <span class="gs-atraiter__count">#{dashboardBean.chiffres.avisEnAttente}</span>
+                    </h:outputLink>
+                    <h:outputLink styleClass="gs-atraiter__item" value="#{request.contextPath}/admin/avis/moderation.xhtml"
+                       rendered="#{dashboardBean.chiffres.signalementsNouveaux gt 0}">
+                        <span class="gs-atraiter__dot"></span>
+                        <span class="gs-atraiter__label">#{dashboardBean.chiffres.signalementsNouveaux} #{msg['dash.atraiter.signalements']}</span>
+                        <span class="gs-atraiter__count">#{dashboardBean.chiffres.signalementsNouveaux}</span>
+                    </h:outputLink>
+                    <h:outputLink styleClass="gs-atraiter__item" value="#{request.contextPath}/admin/commandes/commandes.xhtml"
+                       rendered="#{dashboardBean.chiffres.commandesATraiter gt 0}">
+                        <span class="gs-atraiter__dot"></span>
+                        <span class="gs-atraiter__label">#{dashboardBean.chiffres.commandesATraiter} #{msg['dash.atraiter.commandes']}</span>
+                        <span class="gs-atraiter__count">#{dashboardBean.chiffres.commandesATraiter}</span>
+                    </h:outputLink>
                 </div>
             </div>
 
@@ -86,9 +175,47 @@
             </div>
         </div>
 
-        <div class="gs-card gs-dash-note" data-aos="fade-up">
-            <h3>#{msg['dash.next.title']}</h3>
-            <p style="margin:0; color:var(--gs-text-soft)">#{msg['dash.next.text']}</p>
+        <!-- ================= Accès rapide ================= -->
+        <div class="gs-dash-section">
+            <h2>#{msg['dash.quicklinks.title']}</h2>
+        </div>
+        <div class="gs-quicklinks">
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/sec/securite.xhtml" rendered="#{utilisateurCourant.autorise(perms.PERSONNE_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-shield"></i></span>
+                <span>#{msg['dash.quicklinks.securite']}</span>
+            </h:outputLink>
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/sec/fournisseurs.xhtml" rendered="#{utilisateurCourant.autorise(perms.FOURNISSEUR_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-building"></i></span>
+                <span>#{msg['dash.quicklinks.fournisseurs']}</span>
+            </h:outputLink>
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/sec/clients.xhtml" rendered="#{utilisateurCourant.autorise(perms.CLIENT_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-users"></i></span>
+                <span>#{msg['dash.quicklinks.clients']}</span>
+            </h:outputLink>
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/sec/validations.xhtml" rendered="#{utilisateurCourant.autorise(perms.VALIDATION_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-verified"></i></span>
+                <span>#{msg['dash.quicklinks.validations']}</span>
+            </h:outputLink>
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/geo/geographie.xhtml" rendered="#{utilisateurCourant.autorise(perms.GEO_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-globe"></i></span>
+                <span>#{msg['dash.quicklinks.geo']}</span>
+            </h:outputLink>
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/cat/catalogue.xhtml" rendered="#{utilisateurCourant.autorise(perms.CATALOGUE_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-sitemap"></i></span>
+                <span>#{msg['dash.quicklinks.catalogue']}</span>
+            </h:outputLink>
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/stock/stock.xhtml" rendered="#{utilisateurCourant.autorise(perms.STOCK_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-box"></i></span>
+                <span>#{msg['dash.quicklinks.stock']}</span>
+            </h:outputLink>
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/avis/moderation.xhtml" rendered="#{utilisateurCourant.autorise(perms.AVIS_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-comments"></i></span>
+                <span>#{msg['dash.quicklinks.avis']}</span>
+            </h:outputLink>
+            <h:outputLink styleClass="gs-quicklink" value="#{request.contextPath}/admin/commandes/commandes.xhtml" rendered="#{utilisateurCourant.autorise(perms.COMMANDE_LIRE)}">
+                <span class="gs-quicklink__icon"><i class="pi pi-shopping-cart"></i></span>
+                <span>#{msg['dash.quicklinks.commandes']}</span>
+            </h:outputLink>
         </div>
     </ui:define>
 </ui:composition>

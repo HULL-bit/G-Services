@@ -93,9 +93,10 @@ body.gs-admin {
 }
 
 /* KPI cards (dashboard) */
-.gs-kpi-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; max-width: 1080px; }
-@media (max-width: 1100px) { .gs-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 640px)  { .gs-kpi-grid { grid-template-columns: 1fr; } }
+.gs-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 8px; }
+@media (max-width: 1300px) { .gs-kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 900px)  { .gs-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px)  { .gs-kpi-grid { grid-template-columns: 1fr; } }
 .gs-kpi-card {
   background: var(--gs-surface); border: 1px solid var(--gs-border); border-radius: var(--gs-radius);
   padding: 20px 22px; box-shadow: var(--gs-shadow); position: relative; overflow: hidden;
@@ -301,3 +302,81 @@ body.gs-admin {
     border: 1px solid var(--gs-border); background: var(--gs-surface); color: var(--gs-primary); cursor: pointer;
   }
 }
+
+/* ============================================================================
+   Tableau de bord — même langage visuel que l'accueil public (hero dégradé,
+   accent or, cartes arrondies), décliné en back-office.
+   ========================================================================== */
+.gs-dash-hero {
+  position: relative; overflow: hidden; border-radius: var(--gs-radius);
+  padding: 30px 32px; margin-bottom: 26px; color: #fff;
+  background: linear-gradient(120deg, var(--gs-primary) 0%, var(--gs-primary-2) 100%);
+  box-shadow: var(--gs-shadow-lg);
+  display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+}
+.gs-dash-hero::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(520px 220px at 88% -20%, rgba(201,162,39,.35), transparent 70%);
+  pointer-events: none;
+}
+.gs-dash-hero__text { position: relative; z-index: 1; }
+.gs-dash-hero p.gs-eyebrow { color: var(--gs-accent); margin: 0 0 6px; }
+.gs-dash-hero h1 { color: #fff; margin: 0 0 6px; font-size: 1.7rem; }
+.gs-dash-hero p.gs-lead { margin: 0; color: rgba(255,255,255,.82); font-size: .92rem; max-width: 520px; }
+.gs-dash-hero__stat {
+  position: relative; z-index: 1; text-align: center; background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.25); border-radius: var(--gs-radius); padding: 14px 26px;
+  backdrop-filter: blur(4px);
+}
+.gs-dash-hero__stat .v { font-family: var(--gs-font-title); font-weight: 700; font-size: 2rem; line-height: 1; }
+.gs-dash-hero__stat .l { font-size: .78rem; color: rgba(255,255,255,.8); margin-top: 4px; }
+
+.gs-dash-section { margin: 30px 0 14px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.gs-dash-section h2 { margin: 0; font-size: 1.05rem; }
+.gs-dash-section span { color: var(--gs-text-soft); font-size: .84rem; }
+
+.gs-kpi-card.-accent::after { background: linear-gradient(var(--gs-accent), #E0BF5A); }
+.gs-kpi-card.-accent .gs-kpi-card__icon { background: linear-gradient(135deg, var(--gs-accent), #E0BF5A); color: #1a1a1a; }
+.gs-kpi-card.-ok::after { background: linear-gradient(var(--gs-success), #1f6e46); }
+.gs-kpi-card.-ok .gs-kpi-card__icon { background: linear-gradient(135deg, var(--gs-success), #1f6e46); }
+.gs-kpi-card__sub { font-size: .76rem; color: var(--gs-text-soft); margin-top: 2px; }
+
+.gs-dash-charts { display: grid; grid-template-columns: 1.1fr 1.1fr .8fr; gap: 16px; align-items: stretch; }
+@media (max-width: 1200px) { .gs-dash-charts { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 760px)  { .gs-dash-charts { grid-template-columns: 1fr; } }
+.gs-chart-card { background: var(--gs-surface); border: 1px solid var(--gs-border); border-radius: var(--gs-radius);
+  box-shadow: var(--gs-shadow); padding: 18px 20px; display: flex; flex-direction: column; }
+.gs-chart-card h3 { margin: 0 0 2px; font-size: .96rem; }
+.gs-chart-card p { margin: 0 0 10px; color: var(--gs-text-soft); font-size: .82rem; }
+.gs-chart-card .gs-chart-empty { flex: 1; display: grid; place-items: center; color: var(--gs-text-soft); font-size: .86rem; }
+.gs-chart-card__knob { flex: 1; display: grid; place-items: center; }
+.gs-chart-card__knob-label { text-align: center; color: var(--gs-text-soft); font-size: .84rem; margin-top: 4px; }
+
+.gs-atraiter { display: flex; flex-direction: column; gap: 2px; }
+.gs-atraiter__item {
+  display: flex; align-items: center; gap: 12px; padding: 11px 6px; border-bottom: 1px solid var(--gs-border);
+  text-decoration: none; color: var(--gs-text); border-radius: 8px; transition: background .15s var(--gs-ease);
+}
+.gs-atraiter__item:last-child { border-bottom: 0; }
+.gs-atraiter__item:hover { background: var(--gs-bg); }
+.gs-atraiter__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gs-accent); flex: none; }
+.gs-atraiter__label { flex: 1; font-size: .88rem; }
+.gs-atraiter__count {
+  font-family: var(--gs-font-title); font-weight: 700; min-width: 1.6em; text-align: center;
+  background: var(--gs-danger); color: #fff; border-radius: 999px; padding: 2px 9px; font-size: .78rem;
+}
+.gs-atraiter__empty { display: flex; align-items: center; gap: 8px; color: var(--gs-success); font-size: .88rem; padding: 10px 4px; }
+
+.gs-quicklinks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.gs-quicklink {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px; text-decoration: none;
+  background: var(--gs-surface); border: 1px solid var(--gs-border); border-radius: var(--gs-radius);
+  padding: 16px; color: var(--gs-text); box-shadow: var(--gs-shadow);
+  transition: transform .2s var(--gs-ease), box-shadow .2s var(--gs-ease), border-color .2s var(--gs-ease);
+}
+.gs-quicklink:hover { transform: translateY(-3px); box-shadow: var(--gs-shadow-lg); border-color: var(--gs-primary-2); }
+.gs-quicklink__icon {
+  width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; color: #fff; font-size: 1.05rem;
+  background: linear-gradient(135deg, var(--gs-primary), var(--gs-primary-2));
+}
+.gs-quicklink span { font-size: .86rem; font-weight: 600; }

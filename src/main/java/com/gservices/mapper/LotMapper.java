@@ -15,11 +15,13 @@ public interface LotMapper {
     LotDto toDto(Lot l);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "dateCreation", ignore = true)
     @Mapping(target = "stock", ignore = true)
     @Mapping(target = "mois", ignore = true)
     Lot toEntity(LotDto dto);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "dateCreation", ignore = true)
     @Mapping(target = "stock", ignore = true)
     @Mapping(target = "mois", ignore = true)
     void update(@MappingTarget Lot target, LotDto dto);

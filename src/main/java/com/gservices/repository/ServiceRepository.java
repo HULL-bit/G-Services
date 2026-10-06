@@ -18,6 +18,10 @@ public interface ServiceRepository
     List<Service> findByProprietaireId(Long idProprietaire);
     long countByCategorieServiceId(Long idCategorie);
     long countByParentId(Long idParent);
+    long countByEtatTrue();
+    long countByEtatTrueAndValideTrue();
+    long countByValideFalseAndEtatTrue();
+    long countByBloqueTrueAndEtatTrue();
 
     @EntityGraph(attributePaths = {"categorieService", "parent"})
     Optional<Service> findWithParentsById(Long id);

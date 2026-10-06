@@ -9,6 +9,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class LotDto implements Serializable {
@@ -18,6 +19,7 @@ public class LotDto implements Serializable {
     private BigDecimal prixAchat;
     private LocalDate dateEntree;
     private LocalDate datePeremption;
+    private LocalDateTime dateCreation;
     private boolean etat = true;
     private Long stockId;
     @NotNull private Long moisId;

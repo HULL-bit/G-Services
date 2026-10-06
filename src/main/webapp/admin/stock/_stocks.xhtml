@@ -60,6 +60,9 @@
                 <p:tag value="#{row.etat ? msg['common.actif'] : msg['common.inactif']}"
                        severity="#{row.etat ? 'success' : 'danger'}"/>
             </p:column>
+            <p:column headerText="#{msg['stock.f.dateModification']}" sortBy="#{row.dateModification}" style="width:9rem;white-space:nowrap">
+                <h:outputText value="#{row.dateModification}"><f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy HH:mm"/></h:outputText>
+            </p:column>
             <p:column headerText="#{msg['common.actions']}" style="width:11rem" exportable="false">
                 <span class="gs-actions">
                     <p:commandButton icon="pi pi-list" title="#{msg['stock.gererLots']}" process="@this"
@@ -134,6 +137,9 @@
                 <p:column headerText="#{msg['stock.f.peremption']}">
                     <h:outputText value="#{l.datePeremption}"><f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/></h:outputText>
                     <p:tag value="#{msg['stock.f.perime']}" severity="warning" rendered="#{l.perime}" style="margin-left:6px"/>
+                </p:column>
+                <p:column headerText="#{msg['stock.f.dateCreation']}" style="width:9rem;white-space:nowrap">
+                    <h:outputText value="#{l.dateCreation}"><f:convertDateTime type="localDateTime" pattern="dd/MM/yyyy HH:mm"/></h:outputText>
                 </p:column>
                 <p:column headerText="#{msg['common.etat']}" style="width:7rem">
                     <p:tag value="#{l.etat ? msg['common.actif'] : msg['common.inactif']}"

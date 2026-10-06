@@ -20,4 +20,14 @@ public interface CommandeRepository
     List<Commande> findByClientIdAndEtatTrueOrderByDateCommandeDesc(Long idClient);
 
     long countByServiceProprietaireIdAndStatut(Long idProprietaire, StatutCommande statut);
+
+    long countByStatutAndEtatTrue(StatutCommande statut);
+
+    long countByStatutNotInAndEtatTrue(java.util.Collection<StatutCommande> statuts);
+
+    long countByEtatTrue();
+
+    @org.springframework.data.jpa.repository.Query(
+        "select coalesce(sum(c.montantTotal), 0) from Commande c where c.etat = true")
+    java.math.BigDecimal montantTotal();
 }

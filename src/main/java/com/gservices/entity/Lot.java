@@ -5,9 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /** {@code Lot} d'entrée en {@link Stock}, reçu au cours d'un {@link Mois} donné. */
 @Entity
@@ -41,6 +43,11 @@ public class Lot extends AbstractEntity<Long> {
 
     @Column(name = "date_peremption")
     private LocalDate datePeremption;
+
+    /** Horodatage système de l'enregistrement du lot (distinct de {@link #dateEntree}, choisie par l'utilisateur). */
+    @CreationTimestamp
+    @Column(name = "date_creation", nullable = false, updatable = false)
+    private LocalDateTime dateCreation;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_stock", nullable = false,

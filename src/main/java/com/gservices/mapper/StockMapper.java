@@ -25,12 +25,14 @@ public interface StockMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "dateCreation", ignore = true)
+    @Mapping(target = "dateModification", ignore = true)
     @Mapping(target = "article", ignore = true)
     @Mapping(target = "lots", ignore = true)
     Stock toEntity(StockDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "dateCreation", ignore = true)
+    @Mapping(target = "dateModification", ignore = true)
     @Mapping(target = "article", ignore = true)
     @Mapping(target = "lots", ignore = true)
     void update(@MappingTarget Stock target, StockDto dto);

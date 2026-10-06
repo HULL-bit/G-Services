@@ -37,4 +37,6 @@ public interface AvisRepository
     List<Object[]> repartitionProduit(Long id);
 
     long countByEstModereFalseAndEtatTrue();
+
+    long countByEstModereTrueAndEtatTrue();
 }

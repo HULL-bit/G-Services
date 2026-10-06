@@ -15,6 +15,8 @@ public interface FavoriRepository extends JpaRepository<Favori, Long> {
 
     long countByServiceIdAndEtatTrue(Long idService);
 
+    long countByEtatTrue();
+
     @EntityGraph(attributePaths = {"service", "service.categorieService"})
     List<Favori> findByPersonneIdAndEtatTrueOrderByDateAjoutDesc(Long idPersonne);
 }

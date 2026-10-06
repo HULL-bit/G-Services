@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +37,11 @@ public class Stock extends AbstractEntity<Long> {
     @CreationTimestamp
     @Column(name = "date_creation", nullable = false, updatable = false)
     private LocalDateTime dateCreation;
+
+    /** Horodatage de la dernière modification (quantité, seuil, lots rattachés). */
+    @UpdateTimestamp
+    @Column(name = "date_modification")
+    private LocalDateTime dateModification;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_article", nullable = false, unique = true,

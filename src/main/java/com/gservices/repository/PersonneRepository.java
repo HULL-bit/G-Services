@@ -54,7 +54,16 @@ public interface PersonneRepository
 
     long countByEtatTrue();
 
+    /** Personnes actives détenant ce profil (rôle actif), ex. {@code PRESTATAIRE} ou {@code CLIENT}. */
+    @org.springframework.data.jpa.repository.Query("""
+            select count(distinct p) from Personne p join p.roles r join r.profil pr
+            where p.etat = true and r.etat = true and upper(pr.libelle) = upper(:libelle)
+            """)
+    long countByProfilLibelle(@org.springframework.data.repository.query.Param("libelle") String libelle);
+
     long countByVerrouilleJusquaAfter(java.time.LocalDateTime instant);
+
+    long countByValideFalseAndEtatTrue();
 
     java.util.List<Personne> findByVerrouilleJusquaAfterOrderByVerrouilleJusquaDesc(java.time.LocalDateTime instant);
 }
